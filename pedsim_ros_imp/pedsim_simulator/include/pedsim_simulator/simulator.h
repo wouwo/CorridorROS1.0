@@ -35,13 +35,8 @@
 #include <ros/ros.h>
 
 #include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
 #include <functional>
 #include <memory>
-
-#include <eigen3/Eigen/Eigen>
-#include <eigen3/Eigen/Dense>
-#include <eigen3/Eigen/Geometry>
 
 #include <pedsim_msgs/AgentForce.h>
 #include <pedsim_msgs/AgentGroup.h>
@@ -58,9 +53,6 @@
 #include <geometry_msgs/PoseWithCovariance.h>
 #include <geometry_msgs/TwistWithCovariance.h>
 #include <nav_msgs/Odometry.h>
-#include <nav_msgs/OccupancyGrid.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <visualization_msgs/Marker.h>
 #include <std_msgs/Header.h>
 #include <std_srvs/Empty.h>
 
@@ -77,9 +69,6 @@
 
 #include <dynamic_reconfigure/server.h>
 #include <pedsim_simulator/PedsimSimulatorConfig.h>
-#include <dynamicvoronoi/dynamicvoronoi.h>
-#include <dynamicvoronoi/decision_graph.h>
-
 
 using SimConfig = pedsim_simulator::PedsimSimulatorConfig;
 
@@ -93,11 +82,16 @@ class Simulator {
   bool initializeSimulation();
   void runSimulation();
 
+  // callbacks
+  bool onPauseSimulation(std_srvs::Empty::Request& request,
+                         std_srvs::Empty::Response& response);
+  bool onUnpauseSimulation(std_srvs::Empty::Request& request,
+                           std_srvs::Empty::Response& response);
+
   void spawnCallback(const ros::TimerEvent& event);
 
  protected:
   void reconfigureCB(SimConfig& config, uint32_t level);
-  void costmapUpdateCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
   dynamic_reconfigure::Server<SimConfig> server_;
 
  private:
@@ -107,15 +101,10 @@ class Simulator {
   void publishObstacles();
   void publishRobotPosition();
   void publishWaypoints();
-  void pubTfForSelfSFM();
-  void publishGaze();
-  void publishVoronoiGrid();
-  void publishPassableMap();
-  void pubNode();
-  void pubEdge();
 
  private:
   ros::NodeHandle nh_;
+  bool paused_;
   ros::Timer spawn_timer_;
 
   // publishers
@@ -124,34 +113,25 @@ class Simulator {
   ros::Publisher pub_agent_groups_;
   ros::Publisher pub_robot_position_;
   ros::Publisher pub_waypoints_;
-  ros::Publisher pub_voronoi_grid_;
-  ros::Publisher pub_voronoi_node_;
-  ros::Publisher pub_voronoi_edge_;
-  ros::Publisher pub_passable_map_;
-  ros::Subscriber sub_costmap_;
 
+  // provided services
+  ros::ServiceServer srv_pause_simulation_;
+  ros::ServiceServer srv_unpause_simulation_;
 
   // frame ids
   std::string frame_id_;
   std::string robot_base_frame_id_;
-  DynamicVoronoi voronoi_;
-  DecisionGraph dg_;
-  nav_msgs::OccupancyGrid map_without_people_;
-  std::vector<std::vector<bool>> voronoi_map_;
-  std::vector<std::vector<bool>> passable_map_;
 
   // pointers and additional data
   std::unique_ptr<tf::TransformListener> transform_listener_;
   Agent* robot_;
   tf::StampedTransform last_robot_pose_;
   geometry_msgs::Quaternion last_robot_orientation_;
-  double last_theta_;
 
   inline std::string agentStateToActivity(
       const AgentStateMachine::AgentState& state) const;
 
   inline std_msgs::Header createMsgHeader() const;
-  inline float sign(float x);
 };
 
 #endif

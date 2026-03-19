@@ -1,0 +1,3 @@
+  resolution: 0.1
+  frame_id: map
+  person_diameter: 0.6

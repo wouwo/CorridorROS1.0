@@ -39,7 +39,6 @@
 #include <QRectF>
 
 #include <pedsim_simulator/utilities.h>
-#include <dynamicvoronoi/decision_graph.h>
 
 // Forward Declarations
 class QGraphicsScene;
@@ -100,7 +99,7 @@ class Scene : public QObject, protected Ped::Tscene {
 
   // Slots
  public slots:
-  void moveAllAgents(DecisionGraph* dg);
+  void moveAllAgents();
  protected slots:
   void cleanupScene();
 

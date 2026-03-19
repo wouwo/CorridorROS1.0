@@ -1,4 +1,0 @@
-<launch>
-  <node pkg="dynamicvoronoi" name="dynamic_voronoi" type="dynamicvoronoi_node" output="screen">
-  </node>
-</launch>

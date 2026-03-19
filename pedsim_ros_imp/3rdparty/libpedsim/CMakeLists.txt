@@ -22,7 +22,6 @@ endif(SHALL_DEBUG)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  dynamicvoronoi
 )
 find_package(Boost REQUIRED)
 

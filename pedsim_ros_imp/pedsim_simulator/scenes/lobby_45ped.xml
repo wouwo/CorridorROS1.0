@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Robot and the target person are separated by other person-->
+<scenario>
+    <!--Obstacles-->
+    <obstacle x1="20" y1="0" x2="0" y2="0" type="line"/>
+    <obstacle x1="40" y1="0" x2="50" y2="0" type="line"/>
+    <obstacle x1="20" y1="5" x2="40" y2="5" type="line"/>
+    <obstacle x1="0" y1="0" x2="0" y2="5" type="line"/>
+    <obstacle x1="40" y1="0" x2="40" y2="5" type="line"/>
+    <obstacle x1="20" y1="0" x2="20" y2="5" type="line"/>
+
+    <obstacle x1="0" y1="0" x2="0" y2="15" type="line"/>  
+    <obstacle x1="0" y1="15" x2="10" y2="15" type="line"/>  
+    <obstacle x1="10" y1="15" x2="10" y2="25" type="line"/>
+    <obstacle x1="10" y1="25" x2="40" y2="25" type="line"/>
+
+    <obstacle x1="40" y1="25" x2="40" y2="30" type="line"/>
+    <obstacle x1="40" y1="30" x2="55" y2="30" type="line"/>
+    <obstacle x1="50" y1="25" x2="55" y2="25" type="line"/> 
+    <obstacle x1="50" y1="0" x2="50" y2="25" type="line"/>
+    <obstacle x1="55" y1="25" x2="55" y2="30" type="line"/>
+
+    <obstacle x="21" y="6" radius="0.3" type="circle"/>
+    <obstacle x="27" y="6" radius="0.3" type="circle"/>
+    <obstacle x="33" y="6" radius="0.3" type="circle"/>
+    <obstacle x="39" y="6" radius="0.3" type="circle"/>
+
+    <obstacle x="21" y="24" radius="0.3" type="circle"/>
+    <obstacle x="27" y="24" radius="0.3" type="circle"/>
+    <obstacle x="33" y="24" radius="0.3" type="circle"/>
+    <obstacle x="39" y="24" radius="0.3" type="circle"/>
+
+    <obstacle x="8" y="14" radius="0.3" type="circle"/>
+    <obstacle x="10" y="14" radius="0.3" type="circle"/>
+    <obstacle x="12" y="14" radius="0.3" type="circle"/>
+    <obstacle x="12" y="16" radius="0.3" type="circle"/>
+
+    <obstacle x="48" y="15" xHalfLength="0.3" yHalfLength="2.5" type="rectangle"/>
+    <obstacle x="20" y="15" xHalfLength="1.5" yHalfLength="0.3" type="rectangle"/>
+    <obstacle x="30" y="15" xHalfLength="0.3" yHalfLength="1.5" type="rectangle"/>
+    <obstacle x="40" y="15" xHalfLength="1.5" yHalfLength="0.3" type="rectangle"/>
+
+    <!--Waypoints (incl. WaitingQueues)-->
+    <waypoint id="start" x="52" y="27" r="1"/>
+    <waypoint id="middle1" x="33" y="22" r="0.5"/>
+    <waypoint id="middle2" x="34" y="9" r="0.5"/>
+    <waypoint id="middle3" x="16" y="11" r="0.5"/>
+    <waypoint id="target" x="2" y="2" r="1"/>
+    <waypoint id="point1" x="45" y="5" r="0.5"/>
+    <waypoint id="point2" x="43" y="15" r="0.5"/>
+    <waypoint id="point3" x="45" y="20" r="0.5"/>
+    <waypoint id="point4" x="29" y="10" r="0.5"/>
+    <waypoint id="point5" x="31" y="20" r="0.5"/>
+    <waypoint id="point6" x="15" y="10" r="0.5"/>
+    <waypoint id="point7" x="15" y="20" r="0.5"/>
+    <waypoint id="point8" x="5" y="10" r="0.5"/>
+
+    <!-- Agent include 4 type: -->
+    <!-- enum AgentType { ADULT = 0, CHILD = 1, ROBOT = 2, ELDER = 3 } -->
+    <!--n:number of crowd
+    dxdy:distribution para-->
+
+    <!--target pedestrain-->
+    <agent x="52" y="29" theta="0.0" n="1" dx="0" dy="0" type="1">
+        <!-- <addwaypoint id="start"/> -->
+        <addwaypoint id="point3"/>
+        <addwaypoint id="middle1"/>
+        <addwaypoint id="middle2"/>
+        <addwaypoint id="middle3"/>
+        <addwaypoint id="point8"/>
+        <addwaypoint id="target"/>
+    </agent>
+    <!--Robot-->
+    <agent x="50" y="27" theta="0.0" n="1" dx="0" dy="0" type="2">
+        <!-- <addwaypoint id="middle2"/>
+        <addwaypoint id="robot_goal"/> -->
+    </agent>
+
+    <!--non-target pedestrains-->
+    <agent x="45" y="5" theta="3.14" n="2" dx="7" dy="2" type="1">
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point3"/>
+    </agent>
+    <agent x="43" y="5" theta="3.14" n="2" dx="7" dy="2" type="1">
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point3"/>
+    </agent>
+    <agent x="45" y="8" theta="3.14" n="2" dx="7" dy="2" type="1">
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point3"/>
+    </agent>
+    <agent x="45" y="20" theta="3.14" n="2" dx="2" dy="7" type="1">
+        <addwaypoint id="point5"/>
+        <addwaypoint id="point7"/>
+        <addwaypoint id="point3"/>
+    </agent>
+    <agent x="15" y="14" theta="3.14" n="2" dx="6" dy="8" type="1">
+        <addwaypoint id="point6"/>
+        <addwaypoint id="point4"/>
+        <addwaypoint id="point7"/>
+    </agent>
+    <agent x="15" y="16" theta="3.14" n="2" dx="6" dy="8" type="1">
+        <addwaypoint id="point6"/>
+        <addwaypoint id="point4"/>
+        <addwaypoint id="point7"/>
+    </agent>
+    <agent x="18" y="20" theta="3.14" n="2" dx="6" dy="8" type="1">
+        <addwaypoint id="point6"/>
+        <addwaypoint id="point4"/>
+        <addwaypoint id="point7"/>
+    </agent>
+    <agent x="15" y="20" theta="3.14" n="2" dx="6" dy="8" type="1">
+        <addwaypoint id="point6"/>
+        <addwaypoint id="point4"/>
+        <addwaypoint id="point7"/>
+    </agent>
+    <agent x="13" y="10" theta="3.14" n="2" dx="2" dy="2" type="1">
+        <addwaypoint id="point4"/>
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point3"/>
+        <addwaypoint id="point7"/>
+        <addwaypoint id="point6"/>
+    </agent>
+    <agent x="10" y="10" theta="3.14" n="2" dx="2" dy="2" type="1">
+        <addwaypoint id="point4"/>
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point3"/>
+        <addwaypoint id="point7"/>
+        <addwaypoint id="point6"/>
+    </agent>
+    <agent x="32" y="14" theta="3.14" n="2" dx="2" dy="2" type="1">
+        <addwaypoint id="point5"/>
+        <addwaypoint id="point3"/>
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point4"/>
+    </agent>
+    <agent x="35" y="14" theta="3.14" n="2" dx="2" dy="2" type="1">
+        <addwaypoint id="point5"/>
+        <addwaypoint id="point3"/>
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point4"/>
+    </agent>
+    <agent x="38" y="14" theta="3.14" n="2" dx="2" dy="2" type="1">
+        <addwaypoint id="point5"/>
+        <addwaypoint id="point3"/>
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point4"/>
+    </agent>
+    <agent x="18" y="9" theta="3.14" n="2" dx="5" dy="4" type="1">
+        <addwaypoint id="point4"/>
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point5"/>
+    </agent>
+    <agent x="22" y="10" theta="3.14" n="2" dx="5" dy="4" type="1">
+        <addwaypoint id="point4"/>
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point5"/>
+    </agent>
+    <agent x="22" y="20" theta="3.14" n="1" dx="4" dy="4" type="1">
+        <addwaypoint id="point4"/>
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point5"/>
+    </agent>
+    <agent x="22" y="16" theta="3.14" n="1" dx="4" dy="4" type="1">
+        <addwaypoint id="point4"/>
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point5"/>
+    </agent>
+    <agent x="22" y="18" theta="3.14" n="2" dx="4" dy="4" type="1">
+        <addwaypoint id="point4"/>
+        <addwaypoint id="point2"/>
+        <addwaypoint id="point5"/>
+    </agent>
+    <agent x="13" y="4" theta="3.14" n="1" dx="6" dy="7" type="1">
+        <addwaypoint id="point6"/>
+        <addwaypoint id="point7"/>
+        <addwaypoint id="point5"/>
+        <addwaypoint id="point4"/>
+    </agent>
+
+</scenario>

@@ -141,115 +141,17 @@ bool Ped::Tscene::removeWaypoint(Ped::Twaypoint* w) {
 /// agents in the Tscene.
 /// \param   h This tells the simulation how far the agents should proceed.
 /// \see     Ped::Tagent::move(double h)
-// void Ped::Tscene::moveAgentsWithSocial(double h, DecisionGraph* dg) {
-//   // first update states
-//   for (Tagent* agent : agents) agent->updateState();
-
-//   // then update forces
-//   for (Tagent* agent : agents) agent->computeForces();
-
-//   // finally move agents according to their forces
-//   // 这里的move，用vscode直接跳转会有bug，实际上跳转的应该是agent.cpp里面的move
-//   for (Tagent* agent : agents) agent->move(h);
-// }
-
-void Ped::Tscene::moveAgentsWithSocial(double h, DecisionGraph* dg) {
-  std::cout<<"---"<<std::endl;
-  if (!dg->finishConstruct_)
-    return;
-  dg->graph_.clearEdges();
-  // std::cout<<1<<std::endl;
+void Ped::Tscene::moveAgents(double h) {
   // first update states
   for (Tagent* agent : agents) agent->updateState();
-  // std::cout<<2<<std::endl;
-  // register people state on voronoi graph
-  for (Tagent* agent : agents) agent->registerOnDG(dg);
-  // std::cout<<3<<std::endl;
+
   // then update forces
-  for (Tagent* agent : agents) agent->computeForces(dg);
-  // std::cout<<4<<std::endl;
-  // finally move agents according to their forces
-  // 这里的move，用vscode直接跳转会有bug，实际上跳转的应该是agent.cpp里面的move
-  for (Tagent* agent : agents) agent->move(h, dg);
-  // std::cout<<5<<std::endl;
-}
-
-/// This is a convenience method. It calls Ped::Tagent::move(double h) for all
-/// agents in the Tscene.
-void Ped::Tscene::moveAgentsWithManual(double h){
-  // first update states
-  for (Tagent* agent : agents) agent->updateState();
+  for (Tagent* agent : agents) agent->computeForces();
 
   // finally move agents according to their forces
-  for (Tagent* agent : agents){
-    if (agent->getType()!=2){
-      pair<int,int> action = this->actionList.front();
-      this->actionList.pop();
-      agent->move(h,action);
-    }
-  }
+  for (Tagent* agent : agents) agent->move(h);
 }
 
-void Ped::Tscene::moveAgentsWithReplay(){
-  // first update states
-  for (Tagent* agent : agents) agent->updateState();
-
-  // finally move agents according to their forces
-  for (Tagent* agent : agents){
-    if (agent->getType()!=2){
-      Ped::Tvector state = this->stateList.front();
-      this->stateList.pop();
-      agent->move(state);
-    }
-  }
-}
-
-// change the agent's gaze (gaze target or gaze direction)
-void Ped::Tscene::adjustAgentsGazeWithManual(double h){
-  for (Tagent* agent: agents){
-    if (agent->getType()!=2){
-      Ped::Tvector gaze= this->gazeList.front();
-      this->gazeList.pop();
-
-      double yawRotate=gaze.x;
-      double pitchRotate=gaze.y;
-      double rollRotate=gaze.z;
-
-      Eigen::Quaterniond q_orientation;
-      q_orientation.x()=agent->getGazeOrientation().x;
-      q_orientation.y()=agent->getGazeOrientation().y;
-      q_orientation.z()=agent->getGazeOrientation().z;
-      q_orientation.w()=agent->getGazeOrientation().yaw;
-
-  
-      Eigen::AngleAxisd Zeuler((yawRotate/180)*M_PI,Eigen::Vector3d::UnitZ());
-
-      Eigen::AngleAxisd Yeuler((pitchRotate/180)*M_PI,Eigen::Vector3d::UnitY());
-      Eigen::AngleAxisd Xeuler(0,Eigen::Vector3d::UnitX());
-      Eigen::Matrix3d rotMatrix_adjust=(Zeuler*Yeuler* Xeuler).toRotationMatrix();
-
-    
-      Eigen::Vector3d adjust_gaze=q_orientation.normalized().toRotationMatrix()*rotMatrix_adjust*Eigen::Vector3d(1,0,0);
-
-      agent->setgdirx(adjust_gaze(0));
-      agent->setgdiry(adjust_gaze(1));
-      agent->setgdirz(adjust_gaze(2));
-      
-      q_orientation=Eigen::Quaterniond(q_orientation.normalized().toRotationMatrix()*rotMatrix_adjust);
-
-      agent->setGazeOrientation(q_orientation.x(),q_orientation.y(),q_orientation.z(),q_orientation.w());
-
-      double gtar_x,gtar_y;
-      double gtar_norm=1.0;
-      gtar_x=agent->getPosition().x+gtar_norm*cos(agent->gettheta());
-      gtar_y=agent->getPosition().y+gtar_norm*sin(agent->gettheta());
-
-      agent->setGazeTarget(gtar_x,gtar_y,0,0);
-
-
-    }
-  }
-}
 /// Internally used to update the quadtree.
 void Ped::Tscene::placeAgent(const Ped::Tagent* agentIn) {
   if (tree != NULL) tree->addAgent(agentIn);

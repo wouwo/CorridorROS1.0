@@ -34,14 +34,9 @@
 
 #include <pedsim/ped_agent.h>
 #include <pedsim_simulator/element/scenarioelement.h>
-#include <pedsim_msgs/TrackedPersons.h>
-#include <pedsim_msgs/TrackedPerson.h>
-#include <visualization_msgs/Marker.h>
-#include <eigen3/Eigen/Eigen>
 
 #ifndef Q_MOC_RUN
 #include <ros/ros.h>
-#include <geometry_msgs/Twist.h>
 #include <QGraphicsRectItem>  // TODO -remove qgraphics dependencies
 #endif
 
@@ -82,12 +77,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   bool setWaypoints(const QList<Waypoint*>& waypointsIn);
   bool addWaypoint(Waypoint* waypointIn);
   bool removeWaypoint(Waypoint* waypointIn);
-  
-  // → config for manual control
-  bool setTopic();
-  bool setSubscriber(ros::NodeHandle nh);
 
-  bool setPublisher(ros::NodeHandle nh);
   Ped::Twaypoint* getCurrentDestination() const;
   bool needNewDestination() const;
 
@@ -113,7 +103,6 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   Ped::Tvector getWalkingDirection() const;
   Ped::Tvector getSocialForce() const;
   Ped::Tvector getObstacleForce() const;
-  Ped::Tvector getVoronoiForce() const;
   Ped::Tvector getMyForce() const;
   QList<const Agent*> getNeighbors() const;
   void disableForce(const QString& forceNameIn);
@@ -122,11 +111,10 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   // → Ped::Tagent Overrides/Overloads
  public:
   void updateState();
-  void move(double h, DecisionGraph *dg);
+  void move(double h);
   Ped::Tvector desiredForce();
-  Ped::Tvector socialForce(DecisionGraph* dg);
+  Ped::Tvector socialForce() const;
   Ped::Tvector obstacleForce() const;
-  Ped::Tvector voronoiForce(DecisionGraph* dg);
   Ped::Tvector myForce(Ped::Tvector desired) const;
   Ped::Twaypoint* getCurrentWaypoint() const;
   Ped::Twaypoint* updateDestination();
@@ -134,11 +122,6 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   void setX(double xIn);
   void setY(double yIn);
   void setType(Ped::Tagent::AgentType typeIn);
-  void controlCallback(const geometry_msgs::Twist::ConstPtr& msg);
-  void stateCallback(const pedsim_msgs::TrackedPersons::ConstPtr& msg);
-  void gazeCallback(const geometry_msgs::Twist::ConstPtr& msg);
-
-  void gazePublish(const visualization_msgs::Marker dir_msg) const;
 
   // → VisibleScenarioElement Overrides/Overloads
  public:
@@ -164,27 +147,6 @@ class Agent : public ScenarioElement, public Ped::Tagent {
 
   // → waypoint planner
   WaypointPlanner* waypointplanner;
-
-  // → config for manual control
-  string topicName;
-  string GazetopicName;
-
-
-  string topicPubGazeDirName;
-  ros::Publisher pub_gaze_dir_;
-
-  ros::NodeHandle nh_;
-  ros::Subscriber sub_action_;
-  ros::Subscriber sub_state_;
-  ros::Subscriber sub_gaze_;
-
- public:
-  int ID;
-  string topicPubName;
-  Ped::Tvector actionFromTopic;
-  Ped::Tvector stateFromTopic; 
-  Ped::Tvector gazeFromTopic;
-
 };
 
 #endif

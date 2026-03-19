@@ -37,7 +37,6 @@
 #include <QGraphicsEllipseItem>
 #include <QGraphicsItemGroup>
 #include <QGraphicsLineItem>
-#include <QTimer>
 
 // Forward Declarations
 class Agent;
@@ -108,8 +107,7 @@ class AgentGroup : public ScenarioElement {
   // → Center of Mass
   bool dirty;
   Ped::Tvector cacheCoM;
-  //   → delayed update
-  QTimer comUpdateTimer;
+
 
   // → recollecting group
   bool recollecting;

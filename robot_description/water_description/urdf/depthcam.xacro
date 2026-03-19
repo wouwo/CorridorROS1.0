@@ -126,7 +126,7 @@
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
-      <gravity>1</gravity>
+      <gravity>true</gravity>
       <mu2>1</mu2>
       <fdir1>0 0 0</fdir1>
       <kp>1e+13</kp>

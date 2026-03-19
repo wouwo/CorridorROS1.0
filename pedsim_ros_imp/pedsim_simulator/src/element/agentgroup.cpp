@@ -42,10 +42,7 @@ AgentGroup::AgentGroup() {
   dirty = true;
   dirtyMaxDistance = true;
   recollecting = true;
-  // → delayed center of mass update
-  comUpdateTimer.setSingleShot(true);
-  comUpdateTimer.setInterval(0);
-  connect(&comUpdateTimer, SIGNAL(timeout()), this, SLOT(updateCenterOfMass()));
+
 
   // compute center of mass
   updateCenterOfMass();
@@ -59,10 +56,6 @@ AgentGroup::AgentGroup(const QList<Agent*>& agentsIn) {
   dirty = true;
   dirtyMaxDistance = true;
   members = agentsIn;
-  // → delayed center of mass update
-  comUpdateTimer.setSingleShot(false);
-  comUpdateTimer.setInterval(0);
-  connect(&comUpdateTimer, SIGNAL(timeout()), this, SLOT(updateCenterOfMass()));
 
   // compute center of mass
   updateCenterOfMass();
@@ -80,9 +73,6 @@ AgentGroup::AgentGroup(std::initializer_list<Agent*>& agentsIn) {
   // initialize values
   dirty = true;
   dirtyMaxDistance = true;
-  comUpdateTimer.setSingleShot(true);
-  comUpdateTimer.setInterval(0);
-  connect(&comUpdateTimer, SIGNAL(timeout()), this, SLOT(updateCenterOfMass()));
 
   // add agents from initializer_list to the member list
   for (Agent* currentAgent : agentsIn) {
@@ -101,7 +91,6 @@ void AgentGroup::onPositionChanged(double x, double y) {
   // mark center of mass as dirty (needs to be re-calculated)
   dirty = true;
   dirtyMaxDistance = true;
-  comUpdateTimer.start();
 }
 
 QList<AgentGroup*> AgentGroup::divideAgents(const QList<Agent*>& agentsIn) {
@@ -119,14 +108,12 @@ QList<AgentGroup*> AgentGroup::divideAgents(const QList<Agent*>& agentsIn) {
   while (sizeSum < agentCount) {
     // randomly draw the group size (Poisson distribution)
     // (don't use group size = 0)
-
-    // int groupSize;
-    // do {
-    //   groupSize = distribution(RNG());
-    // } while (groupSize == 0);
-    // // → limit group size to the number of agents left
-    // groupSize = min(groupSize, agentCount - sizeSum);
-    int groupSize = agentCount;
+    int groupSize;
+    do {
+      groupSize = distribution(RNG());
+    } while (groupSize == 0);
+    // → limit group size to the number of agents left
+    groupSize = min(groupSize, agentCount - sizeSum);
 
     // → record group size
     if (sizeDistribution.size() < groupSize) sizeDistribution.resize(groupSize);
@@ -206,7 +193,6 @@ bool AgentGroup::addMember(Agent* agentIn) {
   members.append(agentIn);
   dirty = true;
   dirtyMaxDistance = true;
-  comUpdateTimer.start();
 
   // connect signals
   connect(agentIn, SIGNAL(positionChanged(double, double)), this,
@@ -230,7 +216,6 @@ bool AgentGroup::removeMember(Agent* agentIn) {
     // invalidate cache and schedule update
     dirty = true;
     dirtyMaxDistance = true;
-    comUpdateTimer.start();
 
     // inform users
     emit memberRemoved(agentIn->getId());
@@ -246,7 +231,6 @@ bool AgentGroup::setMembers(const QList<Agent*>& agentsIn) {
   members = agentsIn;
   dirty = true;
   dirtyMaxDistance = true;
-  comUpdateTimer.start();
 
   // connect signals
   foreach (Agent* agent, members)
@@ -268,8 +252,7 @@ Ped::Tvector AgentGroup::getCenterOfMass() const {
   // check cache
   if (dirty) {
     // update cache
-    AgentGroup* nonConstThis = const_cast<AgentGroup*>(this);
-    nonConstThis->updateCenterOfMass();
+    const_cast<AgentGroup*>(this)->updateCenterOfMass();
   }
 
   return cacheCoM;
@@ -278,19 +261,22 @@ Ped::Tvector AgentGroup::getCenterOfMass() const {
 Ped::Tvector AgentGroup::updateCenterOfMass() {
   if (!dirty) return cacheCoM;
 
-  // compute center of mass
-  Ped::Tvector com;
-  foreach (const Agent* member, members) { com += member->getPosition(); }
-
   int groupSize = members.size();
+  // --- 必须添加这个判断 ---
+  if (groupSize == 0) {
+      cacheCoM = Ped::Tvector(0, 0, 0);
+      dirty = false;
+      return cacheCoM;
+  }
+
+  Ped::Tvector com(0, 0, 0);
+  foreach (const Agent* member, members) { 
+      com += member->getPosition(); 
+  }
+
   com /= groupSize;
-
-  // set cache value
   cacheCoM = com;
-
-  // mark the cache as valid
   dirty = false;
-
   return cacheCoM;
 }
 

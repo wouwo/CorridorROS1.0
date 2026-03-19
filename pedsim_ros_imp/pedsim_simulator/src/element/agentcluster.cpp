@@ -66,17 +66,8 @@ QList<Agent*> AgentCluster::dissolve() {
     if (distribution.width() != 0) randomizedX += randomX(RNG());
     if (distribution.height() != 0) randomizedY += randomY(RNG());
     a->setPosition(randomizedX, randomizedY);
-    
-    // init the gaze direction accroding to theta
-    Eigen::AngleAxisd Zeuler(a->gettheta(),Eigen::Vector3d::UnitZ());
-    Eigen::Quaterniond q_orientation=Eigen::Quaterniond(Zeuler);
-    q_orientation.normalized();
-    a->setGazeOrientation(q_orientation.x(),q_orientation.y(),q_orientation.z(),q_orientation.w());
-     
     a->setType(agentType);
-    if (agentType!= 2 ){
-      a->setTopic();
-    }
+
     // add waypoints to the agent
     foreach (Waypoint* waypoint, waypoints)
       a->addWaypoint(waypoint);

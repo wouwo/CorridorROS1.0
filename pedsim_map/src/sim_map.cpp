@@ -20,16 +20,6 @@ void ObstacleProcess::YamlReader(){
   nh_.param<double>("pedsim_fakemap/resolution", resolution, 0.1);
 }
 
-void ObstacleProcess::MatchMap(){
-  tf::TransformBroadcaster br;
-  tf::Transform transform;
-  transform.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-  tf::Quaternion q;
-  q.setRPY(0, 0, 0.0);
-  transform.setRotation(q);
-  br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "odom"));
-}
-
 
 void ObstacleProcess::PersonCallback(const pedsim_msgs::TrackedPersons::ConstPtr& persons) {
   // remap the topic into /persons

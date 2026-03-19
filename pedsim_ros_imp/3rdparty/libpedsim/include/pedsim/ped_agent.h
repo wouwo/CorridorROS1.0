@@ -14,10 +14,8 @@
 
 #include "ped_vector.h"
 
-#include <ros/ros.h>
 #include <deque>
 #include <set>
-#include <dynamicvoronoi/decision_graph.h>
 
 using namespace std;
 
@@ -48,14 +46,11 @@ class LIBEXPORT Tagent {
   virtual ~Tagent();
 
   virtual void updateState(){};
-  virtual void computeForces(DecisionGraph* dg);
-  virtual void move(double stepSizeIn, DecisionGraph *dg);
-  virtual void move(double stepSizeIn, pair<int,int> action);
-  virtual void move(Ped::Tvector state);
+  virtual void computeForces();
+  virtual void move(double stepSizeIn);
   virtual Tvector desiredForce();
-  virtual Tvector socialForce(DecisionGraph* dg);
+  virtual Tvector socialForce() const;
   virtual Tvector obstacleForce() const;
-  virtual Tvector voronoiForce(DecisionGraph* dg);
   virtual Tvector myForce(Tvector desired) const;
   virtual Twaypoint* getCurrentWaypoint() const = 0;
 
@@ -63,8 +58,6 @@ class LIBEXPORT Tagent {
   virtual void setType(AgentType typeIn) { type = typeIn; };
   virtual void setVmax(double vmax);
   virtual void SetRadius(double radius) { agentRadius = radius; }
-  virtual void setGazeOrientation(double px, double py, double pz, double pw);
-  virtual void setGazeTarget(double px,double py,double pz,double pmode);
 
   void setTeleop(bool opstatus) { teleop = opstatus; }
   void setRobotPosDiffScalingFactor(double scalingFactor);
@@ -81,7 +74,6 @@ class LIBEXPORT Tagent {
   const Tvector& getPosition() const { return p; }
   const Tvector& getVelocity() const { return v; }
   const Tvector& getAcceleration() const { return a; }
-  const Tvector& getGazeOrientation() const {return gori;}
 
   double getx() const { return p.x; };
   double gety() const { return p.y; };
@@ -92,41 +84,24 @@ class LIBEXPORT Tagent {
   double getax() const { return a.x; };
   double getay() const { return a.y; };
   double getaz() const { return a.z; };
-  double gettheta() const {return theta; };
-  double getomega() const {return omega; };
-  const Tvector& getgdir() const {return gdir;};
 
-  void setvx(double vv) { v.x = vv; };
-  void setvy(double vv) { v.y = vv; };
-  void settheta(double the){ theta = the; };
-  void setomega(double ome){ omega = ome; };
-
-  void setgdirx(double gx){gdir.x=gx;};
-  void setgdiry(double gy){gdir.y=gy;};
-  void setgdirz(double gz){gdir.z=gz;};
+  void setvx(double vv) { v.x = vv; }
+  void setvy(double vv) { v.y = vv; }
 
   virtual void setForceFactorDesired(double f);
   virtual void setForceFactorSocial(double f);
   virtual void setForceFactorObstacle(double f);
-  virtual void setForceFactorVoronoi(double f);
 
   void assignScene(Tscene* sceneIn);
   void removeAgentFromNeighbors(const Tagent* agentIn);
-  void registerOnDG(DecisionGraph* dg);
 
  protected:
   int id;
   Tvector p;  ///< current position of the agent
   Tvector v;  ///< current velocity of the agent
   Tvector a;  ///< current acceleration of the agent
-  Tvector gdir; ///< current gaze direction of the agent
-  Tvector gori;
-  Tvector gtar; ///< current gaze target of the agent  
-  double omega; ///< current angular velocity of the agent
-  double theta; ///< current orientation of the agent
   AgentType type;
   double vmax;
-  double wmax;
   double agentRadius;
   double relaxationTime;
   bool teleop;
@@ -135,7 +110,6 @@ class LIBEXPORT Tagent {
   double forceFactorDesired;
   double forceFactorSocial;
   double forceFactorObstacle;
-  double forceFactorVoronoi;
   double forceSigmaObstacle;
 
   Ped::Tscene* scene;
@@ -146,7 +120,6 @@ class LIBEXPORT Tagent {
   Ped::Tvector desiredforce;
   Ped::Tvector socialforce;
   Ped::Tvector obstacleforce;
-  Ped::Tvector voronoiforce;
   Ped::Tvector myforce;
 };
 }

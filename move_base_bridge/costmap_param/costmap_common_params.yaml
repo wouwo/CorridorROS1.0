@@ -1,4 +1,4 @@
-map_type: costmap
+# map_type: costmap
 
 obstacle_layer:
  enabled: true
@@ -16,9 +16,9 @@ inflation_layer:
   cost_scaling_factor:  10.0  # exponential rate at which the obstacle cost drops off (default: 10)
   inflation_radius:     0.3  # max. distance from an obstacle at which costs are incurred for planning paths. *must >= robot_radius defined in the robot_constraints.yaml*
 
-fake_obstacle_layer:
-  enabled:              true
-  map_topic:            "/map_with_people"
+# fake_obstacle_layer:
+#   enabled:              true
+#   map_topic:            "/map_with_people"
 
 static_layer:
   enabled:              true

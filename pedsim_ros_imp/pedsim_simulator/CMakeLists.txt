@@ -15,7 +15,6 @@ set(PEDSIM_SIMULATOR_DEPENDENCIES
   tf
   cmake_modules
   dynamic_reconfigure
-  dynamicvoronoi
 )
 
 set(CMAKE_AUTOMOC ON)
@@ -115,7 +114,7 @@ add_executable(${EXECUTABLE_NAME} ${SOURCES} ${MOC_SRCS_UI})
 add_dependencies(${EXECUTABLE_NAME} ${catkin_EXPORTED_TARGETS})
 add_dependencies(${EXECUTABLE_NAME} ${PROJECT_NAME}_gencfg)
 target_link_libraries(${EXECUTABLE_NAME}
-  ${Qt5Widgets_LIBRARIES} ${BOOST_LIBRARIES} ${catkin_LIBRARIES}
+  pedsim ${Qt5Widgets_LIBRARIES} ${BOOST_LIBRARIES} ${catkin_LIBRARIES}
 )
 
 add_executable(simulate_diff_drive_robot src/simulate_diff_drive_robot.cpp)

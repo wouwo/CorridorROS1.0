@@ -53,10 +53,9 @@ Simulator::~Simulator() {
   pub_agent_groups_.shutdown();
   pub_robot_position_.shutdown();
   pub_waypoints_.shutdown();
-  pub_voronoi_grid_.shutdown();
-  pub_passable_map_.shutdown();
-  pub_voronoi_edge_.shutdown();
-  pub_voronoi_node_.shutdown();
+
+  srv_pause_simulation_.shutdown();
+  srv_unpause_simulation_.shutdown();
 
   delete robot_;
   QCoreApplication::exit(0);
@@ -70,22 +69,23 @@ bool Simulator::initializeSimulation() {
                   << (queue_size == 0
                           ? "NOTE: This means the queues are of infinite size!"
                           : ""));
+
   // setup ros publishers
   pub_obstacles_ = nh_.advertise<pedsim_msgs::LineObstacles>("simulated_walls", queue_size);
   pub_agent_states_ = nh_.advertise<pedsim_msgs::AgentStates>("simulated_agents", queue_size);
   pub_agent_groups_ = nh_.advertise<pedsim_msgs::AgentGroups>("simulated_groups", queue_size);
-  pub_robot_position_ = nh_.advertise<nav_msgs::Odometry>("/odom", queue_size);
+  pub_robot_position_ = nh_.advertise<nav_msgs::Odometry>("odom", queue_size);
   pub_waypoints_ = nh_.advertise<pedsim_msgs::Waypoints>("simulated_waypoints", queue_size);
-  pub_voronoi_grid_ = nh_.advertise<nav_msgs::OccupancyGrid>("voronoi_grid", 1);
-  pub_passable_map_ = nh_.advertise<nav_msgs::OccupancyGrid>("passable_map", 1);
-  pub_voronoi_node_ = nh_.advertise<visualization_msgs::MarkerArray>("voronoi_node", 1);
-  pub_voronoi_edge_ = nh_.advertise<visualization_msgs::MarkerArray>("voronoi_edge", 1);
-  sub_costmap_ = nh_.subscribe<nav_msgs::OccupancyGrid>("/map",100, boost::bind(&Simulator::costmapUpdateCallback, this ,_1));
+
+  // services
+  srv_pause_simulation_ = nh_.advertiseService(
+      "pause_simulation", &Simulator::onPauseSimulation, this);
+  srv_unpause_simulation_ = nh_.advertiseService(
+      "unpause_simulation", &Simulator::onUnpauseSimulation, this);
 
   // setup TF listener and other pointers
   transform_listener_.reset(new tf::TransformListener());
   robot_ = nullptr;
-  last_theta_ = -10;
 
   // load additional parameters
   std::string scene_file_param;
@@ -112,22 +112,20 @@ bool Simulator::initializeSimulation() {
   nh_.param<double>("update_rate", CONFIG.updateRate, 25.0);
   nh_.param<double>("simulation_factor", CONFIG.simulationFactor, 1.0);
 
-  int robot_mode = 1;
-  nh_.param<int>("robot_mode", robot_mode, 2);
-  CONFIG.robot_mode = static_cast<RobotMode>(robot_mode);
-  int person_mode = 1;
-  nh_.param<int>("person_mode", person_mode, 2);
-  CONFIG.person_mode = static_cast<PersonMode>(person_mode);
+  int op_mode = 1;
+  nh_.param<int>("robot_mode", op_mode, 1);
+  CONFIG.robot_mode = static_cast<RobotMode>(op_mode);
 
   double spawn_period;
   nh_.param<double>("spawn_period", spawn_period, 5.0);
   nh_.param<std::string>("frame_id", frame_id_, "odom");
-  nh_.param<std::string>("robot_base_frame_id", robot_base_frame_id_,
-      "base_link");
+  nh_.param<std::string>("robot_base_frame_id", robot_base_frame_id_,"base_link");
+
+  paused_ = false;
 
   spawn_timer_ =
       nh_.createTimer(ros::Duration(spawn_period), &Simulator::spawnCallback, this);
-  
+
   return true;
 }
 
@@ -140,34 +138,29 @@ void Simulator::runSimulation() {
       for (Agent* agent : SCENE.getAgents()) {
         if (agent->getType() == Ped::Tagent::ROBOT) {
           robot_ = agent;
-        }
-        else{
-          agent->setSubscriber(nh_);
-          agent->setPublisher(nh_);          
+          last_robot_orientation_ =
+              poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
         }
       }
     }
 
+    if (!paused_) {
+      updateRobotPositionFromTF();
+      SCENE.moveAllAgents();
 
-    publishGaze();    
-    updateRobotPositionFromTF();
-    SCENE.moveAllAgents(&dg_);
-    publishAgents();
-    publishGroups();
-    publishRobotPosition();
-    publishObstacles();
-    publishWaypoints();
-    publishVoronoiGrid();
-    publishPassableMap();
-    pubNode();
-    pubEdge();
-
+      publishAgents();
+      publishGroups();
+      publishRobotPosition();
+      publishObstacles();
+      publishWaypoints();
+    }
     ros::spinOnce();
     r.sleep();
   }
 }
 
-void Simulator::reconfigureCB(pedsim_simulator::PedsimSimulatorConfig& config, uint32_t level) {
+void Simulator::reconfigureCB(pedsim_simulator::PedsimSimulatorConfig& config,
+                              uint32_t level) {
   CONFIG.updateRate = config.update_rate;
   CONFIG.simulationFactor = config.simulation_factor;
 
@@ -175,7 +168,6 @@ void Simulator::reconfigureCB(pedsim_simulator::PedsimSimulatorConfig& config, u
   CONFIG.setObstacleForce(config.force_obstacle);
   CONFIG.setObstacleSigma(config.sigma_obstacle);
   CONFIG.setSocialForce(config.force_social);
-  CONFIG.setVoronoiForce(config.force_voronoi);
   CONFIG.setGroupGazeForce(config.force_group_gaze);
   CONFIG.setGroupCoherenceForce(config.force_group_coherence);
   CONFIG.setGroupRepulsionForce(config.force_group_repulsion);
@@ -185,6 +177,18 @@ void Simulator::reconfigureCB(pedsim_simulator::PedsimSimulatorConfig& config, u
   ROS_INFO_STREAM("Updated sim with live config: Rate=" << CONFIG.updateRate
                                                         << " incoming rate="
                                                         << config.update_rate);
+}
+
+bool Simulator::onPauseSimulation(std_srvs::Empty::Request& request,
+                                  std_srvs::Empty::Response& response) {
+  paused_ = true;
+  return true;
+}
+
+bool Simulator::onUnpauseSimulation(std_srvs::Empty::Request& request,
+                                    std_srvs::Empty::Response& response) {
+  paused_ = false;
+  return true;
 }
 
 void Simulator::spawnCallback(const ros::TimerEvent& event) {
@@ -203,105 +207,13 @@ void Simulator::spawnCallback(const ros::TimerEvent& event) {
   }
 }
 
-void Simulator::costmapUpdateCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
-{
-  if (map_without_people_.data.empty()){
-    map_without_people_ = *msg;
-    // ros::Time t = ros::Time::now();
-
-    // receives the map information from topic
-    int nx_ = msg->info.width;
-    int ny_ = msg->info.height;
-    int map_size = msg->data.size();
-    auto map_char = msg->data;
-
-    // construct a 2D map. true represents the point is obstacle-occupied
-    bool **map_bool = NULL;
-    map_bool = new bool*[nx_];
-    for (int x=0; x<nx_; x++) {
-        map_bool[x] = new bool[ny_];
-    }
-    for (int i=0; i<map_size; i++){
-        if ((int)map_char[i] != 100){
-            map_bool[i%nx_][i/nx_] = false;
-        }
-        else{
-            map_bool[i%nx_][i/nx_] = true;
-        }
-    }
-    // initialize voronoi object it with the map
-    voronoi_.initializeMap(nx_, ny_, map_bool);
-    // update distance map and Voronoi diagram
-    voronoi_.update(); 
-    // prune the Voronoi
-    voronoi_.prune();
-    
-
-
-    for (int x=0; x<nx_; x++) {
-        delete []map_bool[x];
-    }
-    delete []map_bool;
-    
-    // voronoi_map保存所有剔除边界点后的voronoi点
-    std::vector<std::vector<bool>> voronoi_map(nx_, std::vector<bool>(ny_, false));
-    std::vector<std::vector<float>> distance_map(nx_, std::vector<float>(ny_, 999.9));
-    std::vector<std::vector<bool>> passable_map(nx_, std::vector<bool>(ny_, false));
-    std::vector<std::vector<bool>> passable_map2(nx_, std::vector<bool>(ny_, false));
-
-    for (int x=0; x<nx_; ++x){
-        for (int y=0; y<ny_; ++y){
-          distance_map[x][y] = voronoi_.getDistance(x,y);
-          if (voronoi_.getDistance(x,y)>0.3/0.1 && !(x==0 || x==nx_-1 || y==0 || y==ny_-1)){  // 设人的半径为0.3
-            if (voronoi_.isVoronoi(x,y)){
-              voronoi_map[x][y] = true;              
-            }
-          }
-          if (voronoi_.getDistance(x,y)>0.3/0.1 && !(x==0 || x==nx_-1 || y==0 || y==ny_-1)){  // 设人的半径为0.3
-            passable_map[x][y] = true;           
-          }
-        }
-    }
-    
-    std::vector<std::pair<int,int>> iter = {{-1,-1},{-1,1},{1,-1},{1,1}};
-    for (int x=0; x<nx_; ++x){
-      for (int y=0; y<ny_; ++y){
-        int passable_count = 0;
-        int obstacle_count = 0;      
-        if (passable_map[x][y]){
-          passable_map2[x][y] = true;
-        }
-        else if (x==0 || x==nx_-1 || y==0 || y==ny_-1){
-          passable_map2[x][y] = false;
-        }
-        else{
-          for (auto it:iter){
-            if (passable_map[x+it.first][y+it.second])
-              ++passable_count;
-            else
-              ++obstacle_count;
-          }
-          if (passable_count==3 && obstacle_count==1){
-            passable_map2[x][y] = true;
-          }
-          else{
-            passable_map2[x][y] = false;
-          }
-        }
-      }
-    }
-    voronoi_map_ = voronoi_map;
-    passable_map_ = passable_map2;
-    dg_.constructDecisionGraph(voronoi_map, distance_map, passable_map, *msg);
-    // ROS_INFO("Time: %f sec", (ros::Time::now() - t).toSec());
-  }
-}
-
 void Simulator::updateRobotPositionFromTF() {
-  if (!robot_ || CONFIG.robot_mode==RobotMode::SOCIAL_DRIVE) return;
-  // 如果通过外部控制，就直接监听TF变换就行了
+  if (!robot_) return;
+
   if (CONFIG.robot_mode == RobotMode::TELEOPERATION ||
       CONFIG.robot_mode == RobotMode::CONTROLLED) {
+    robot_->setTeleop(true);
+    robot_->setVmax(2 * CONFIG.max_robot_speed);
 
     // Get robot position via TF
     tf::StampedTransform tfTransform;
@@ -324,33 +236,25 @@ void Simulator::updateRobotPositionFromTF() {
         tfTransform.stamp_.toSec() - last_robot_pose_.stamp_.toSec();
     double vx = dx / dt, vy = dy / dt;
 
-    double theta = atan2(vy,vx);
-    double omega = (theta-robot_->gettheta())/dt;
     if (!std::isfinite(vx)) vx = 0;
     if (!std::isfinite(vy)) vy = 0;
-    if (!std::isfinite(omega)) omega = 0;
 
     ROS_DEBUG_STREAM("rx, ry: " << robot_->getx() << ", " << robot_->gety() << " vs: " << x << ", " << y);
 
     robot_->setX(x);
     robot_->setY(y);
-    robot_->settheta(theta);
     robot_->setvx(vx);
     robot_->setvy(vy);
-    robot_->setomega(omega);
 
 
     ROS_DEBUG_STREAM("Robot speed: " << std::hypot(vx, vy) << " dt: " << dt);
 
     last_robot_pose_ = tfTransform;
-    last_robot_orientation_ = poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
   }
 }
 
 void Simulator::publishRobotPosition() {
   if (robot_ == nullptr) return;
-  if (last_theta_== -10)
-    last_theta_ = std::atan2(robot_->getvy(), robot_->getvx());
 
   nav_msgs::Odometry robot_location;
   robot_location.header = createMsgHeader();
@@ -358,52 +262,18 @@ void Simulator::publishRobotPosition() {
 
   robot_location.pose.pose.position.x = robot_->getx();
   robot_location.pose.pose.position.y = robot_->gety();
-  double current_theta = std::atan2(robot_->getvy(), robot_->getvx());
-  double delta_theta = (current_theta-last_theta_);
-  while (delta_theta>M_PI)
-    delta_theta -= 2*M_PI;
-  while (delta_theta<-M_PI)
-    delta_theta += 2*M_PI;
-
-
-  if (fabs(delta_theta)<M_PI*0.5){
-    robot_location.pose.pose.orientation = angleToQuaternion(current_theta);
+  if (hypot(robot_->getvx(), robot_->getvy()) < 0.05) {
+    robot_location.pose.pose.orientation = last_robot_orientation_;
+  } else {
+    robot_location.pose.pose.orientation =
+        poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
     last_robot_orientation_ = robot_location.pose.pose.orientation;
-    robot_location.twist.twist.linear.x = sign(robot_location.twist.twist.linear.x) * hypot(robot_->getvx(), robot_->getvy());
-    // robot_location.twist.twist.linear.x = hypot(robot_->getvx(), robot_->getvy());
-    robot_location.twist.twist.angular.z = robot_->getomega();
   }
-  else{
-    current_theta = current_theta + M_PI;
-    while (current_theta>M_PI)
-      current_theta -= 2*M_PI;
-    while (current_theta<-M_PI)
-      current_theta += 2*M_PI;        
-    robot_location.pose.pose.orientation = angleToQuaternion(current_theta);
-    last_robot_orientation_ = robot_location.pose.pose.orientation;
-    robot_location.twist.twist.linear.x = -sign(robot_location.twist.twist.linear.x) * hypot(robot_->getvx(), robot_->getvy());
-    // robot_location.twist.twist.linear.x = - hypot(robot_->getvx(), robot_->getvy());
-    robot_location.twist.twist.angular.z = robot_->getomega();    
-  }   
-  // }
-  last_theta_ = current_theta;
+
+  robot_location.twist.twist.linear.x = robot_->getvx();
+  robot_location.twist.twist.linear.y = robot_->getvy();
+
   pub_robot_position_.publish(robot_location);
-  if (CONFIG.robot_mode==RobotMode::SOCIAL_DRIVE){
-    pubTfForSelfSFM();
-  }
-}
-
-void Simulator::pubTfForSelfSFM() {
-  static tf::Transform g_currentPose_for_SFM;
-  static tf::TransformBroadcaster g_transformBroadcaster_for_SFM;
-  // Update pose
-  g_currentPose_for_SFM.getOrigin().setX(robot_->getx());
-  g_currentPose_for_SFM.getOrigin().setY(robot_->gety());
-  g_currentPose_for_SFM.setRotation(tf::createQuaternionFromRPY(0, 0, atan2(robot_->getvy(),robot_->getvx())));
-
-  // Broadcast transform
-  g_transformBroadcaster_for_SFM.sendTransform(tf::StampedTransform(
-      g_currentPose_for_SFM, ros::Time::now(), frame_id_, robot_base_frame_id_));
 }
 
 void Simulator::publishAgents() {
@@ -431,7 +301,7 @@ void Simulator::publishAgents() {
     state.pose.position.x = a->getx();
     state.pose.position.y = a->gety();
     state.pose.position.z = a->getz();
-    auto theta = a->gettheta();
+    auto theta = std::atan2(a->getvy(), a->getvx());
     state.pose.orientation = pedsim::angleToQuaternion(theta);
 
     state.twist.linear.x = a->getvx();
@@ -451,11 +321,9 @@ void Simulator::publishAgents() {
 
     // Forces.
     pedsim_msgs::AgentForce agent_forces;
-    // agent_forces.desired_force = VecToMsg(a->getDesiredDirection());
-    agent_forces.desired_force = VecToMsg(a->getVoronoiForce());
+    agent_forces.desired_force = VecToMsg(a->getDesiredDirection());
+    agent_forces.obstacle_force = VecToMsg(a->getObstacleForce());
     agent_forces.social_force = VecToMsg(a->getSocialForce());
-    // agent_forces.obstacle_force = VecToMsg(a->getVoronoiForce() + a->getSocialForce());
-    
     // agent_forces.group_coherence_force = a->getSocialForce();
     // agent_forces.group_gaze_force = a->getSocialForce();
     // agent_forces.group_repulsion_force = a->getSocialForce();
@@ -532,235 +400,6 @@ void Simulator::publishWaypoints() {
   pub_waypoints_.publish(sim_waypoints);
 }
 
-void Simulator::publishGaze()
-{
-  visualization_msgs::Marker gazeVec;
-  visualization_msgs::Marker gazePoint;
-
-  int agent_id=0;
-
-  for (const Agent* a : SCENE.getAgents()) 
-  {
-    if (a->getType()==Ped::Tagent::ROBOT){
-      continue;
-    }
-    else{
-
-      // publish the gaze vector
-      gazeVec.header.frame_id="odom";
-      gazeVec.header.stamp=ros::Time::now();
-      gazeVec.ns="gaze_vector";
-      gazeVec.id=agent_id;
-      gazeVec.action =visualization_msgs::Marker::ADD;
-      
-      gazeVec.type = visualization_msgs::Marker::ARROW;
-
-      gazeVec.pose.position.x=a->getPosition().x;
-      gazeVec.pose.position.y=a->getPosition().y;
-      gazeVec.pose.position.z=1.6;
-
-      gazeVec.pose.orientation.x=a->getGazeOrientation().x;
-      gazeVec.pose.orientation.y=a->getGazeOrientation().y;
-      gazeVec.pose.orientation.z=a->getGazeOrientation().z;
-      gazeVec.pose.orientation.w=a->getGazeOrientation().yaw;
-
-      gazeVec.scale.x = 1;
-      gazeVec.scale.y = 0.1;
-      gazeVec.scale.z = 0.1;
-
-      gazeVec.color.a = 1.0;
-      gazeVec.color.r = 0.0;
-      gazeVec.color.g = 1.0;
-      gazeVec.color.b = 0.0;
-
-      a->gazePublish(gazeVec);
-    }
-  }
-}
-
-void Simulator::publishVoronoiGrid()
-{
-    nav_msgs::OccupancyGrid grid;
-    // Publish Whole Grid
-    grid.header = map_without_people_.header;
-    grid.header.stamp = ros::Time::now();
-    grid.info = map_without_people_.info;
-    auto nx_ = grid.info.width;
-    auto ny_ = grid.info.height;
-
-    grid.data.resize(nx_ * ny_);
-
-    for (unsigned int x = 0; x < nx_; x++)
-    {
-        for (unsigned int y = 0; y < ny_; y++)
-        {
-            if(voronoi_map_[x][y])
-                grid.data[x + y*nx_] = (char)127;
-            else
-                grid.data[x + y*nx_] = (char)0;
-        }
-    }
-
-    pub_voronoi_grid_.publish(grid);
-}
-
-void Simulator::publishPassableMap()
-{
-    nav_msgs::OccupancyGrid grid;
-    // Publish Whole Grid
-    grid.header = map_without_people_.header;
-    grid.header.stamp = ros::Time::now();
-    grid.info = map_without_people_.info;
-    auto nx_ = grid.info.width;
-    auto ny_ = grid.info.height;
-
-    grid.data.resize(nx_ * ny_);
-
-    for (unsigned int x = 0; x < nx_; x++)
-    {
-        for (unsigned int y = 0; y < ny_; y++)
-        {
-            if(passable_map_[x][y])
-                grid.data[x + y*nx_] = (char)27;
-            else
-                grid.data[x + y*nx_] = (char)0;
-        }
-    }
-    pub_passable_map_.publish(grid);
-}
-
-void Simulator::pubNode(){
-  auto node_list = dg_.graph_.getNodeList();
-  visualization_msgs::MarkerArray markerArray;
-  int i=0;
-  double height = 0.1;
-  for (auto node:node_list){
-    float color[3] = {1,0,0};
-    if (node.attribute_ == "dump")
-      color[0]=0;
-      // continue;
-    // height += 0.1;
-    visualization_msgs::Marker marker;
-    double wx = map_without_people_.info.origin.position.x + node.x*map_without_people_.info.resolution + 0.5*map_without_people_.info.resolution;
-    double wy = map_without_people_.info.origin.position.y + node.y*map_without_people_.info.resolution + 0.5*map_without_people_.info.resolution;
-    // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-    marker.header.frame_id = "/odom";
-    marker.header.stamp = ros::Time::now();
-
-    // Set the namespace and id for this marker.  This serves to create a unique ID
-    // Any marker sent with the same namespace and id will overwrite the old one
-    // marker.ns = "basic_shapes";
-    marker.id = i++;
-
-    // Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
-    marker.type = visualization_msgs::Marker::POINTS;;  //points
-
-    // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
-    marker.action = visualization_msgs::Marker::ADD;
-
-    // Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
-    geometry_msgs::Point poi;
-    poi.x = wx;
-    poi.y = wy;
-    poi.z = height;
-    marker.points.push_back(poi);
-
-    // Set the scale of the marker -- 1x1x1 here means 1m on a side
-    marker.scale.x = 0.1;
-    marker.scale.y = 0.1;
-    marker.scale.z = 0.05;
-
-    // Set the color -- be sure to set alpha to something non-zero!
-    marker.color.r = color[0];
-    marker.color.g = color[1];
-    marker.color.b = color[2];
-    marker.color.a = 1.0;
-
-    marker.lifetime = ros::Duration();
-    markerArray.markers.push_back(marker);
-  }
-  pub_voronoi_node_.publish(markerArray);    
-}
-
-void Simulator::pubEdge(){
-  auto graph = dg_.graph_;
-  visualization_msgs::MarkerArray markerArray;
-  int i=0;
-  double height = 0.05;
-  double width = 0.1;
-  std::vector<float> color = {0,0,0};
-  std::vector<float> color_avoiding = {0,0,1};
-  std::vector<float> color_moving_single = {0,0.8,0};
-  std::vector<float> color_moving_double = {0,0.5,0};
-  for (int j=0; j<graph.getNodeList().size();j++){
-    for (int k=j+1; k<graph.getNodeList().size(); k++){
-      auto edge = graph.getEdge(j,k);
-      auto path = edge.getPath();
-      if (path.size()==0)
-        continue;
-      if (edge.getDirAttribute()=="backtoway" || edge.getDirAttribute()=="giveway"){
-        color = color_avoiding;
-      }
-      if (edge.getDirAttribute()=="forward" || edge.getDirAttribute()=="backward"){
-        if (edge.getWidthAttribute()=="single"){
-          color = color_moving_single;
-        }
-        else{
-          color = color_moving_double;
-        }
-      }
-      for (int l=0; l<path.size()-1; l++){
-        visualization_msgs::Marker marker;
-        double wx1 = map_without_people_.info.origin.position.x + path[l].first*map_without_people_.info.resolution+0.5*map_without_people_.info.resolution;
-        double wy1 = map_without_people_.info.origin.position.y + path[l].second*map_without_people_.info.resolution+0.5*map_without_people_.info.resolution;
-        double wx2 = map_without_people_.info.origin.position.x + path[l+1].first*map_without_people_.info.resolution+0.5*map_without_people_.info.resolution;
-        double wy2 = map_without_people_.info.origin.position.y + path[l+1].second*map_without_people_.info.resolution+0.5*map_without_people_.info.resolution;
-        // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/odom";
-        marker.header.stamp = ros::Time::now();
-    
-        // Set the namespace and id for this marker.  This serves to create a unique ID
-        // Any marker sent with the same namespace and id will overwrite the old one
-        // marker.ns = "basic_shapes";
-        marker.id = i++;
-    
-        // Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
-        marker.type = visualization_msgs::Marker::LINE_STRIP;;  //points
-    
-        // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
-        marker.action = visualization_msgs::Marker::ADD;
-    
-        // Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
-        geometry_msgs::Point poi;
-        poi.x = wx1;
-        poi.y = wy1;
-        poi.z = height;
-        marker.points.push_back(poi);
-        poi.x = wx2;
-        poi.y = wy2;
-        poi.z = height;
-        marker.points.push_back(poi);
-
-        // Set the scale of the marker -- 1x1x1 here means 1m on a side
-        marker.scale.x = width;
-        marker.scale.y = width;
-        marker.scale.z = 0.1;
-    
-        // Set the color -- be sure to set alpha to something non-zero!
-        marker.color.r = color[0];
-        marker.color.g = color[1];
-        marker.color.b = color[2];
-        marker.color.a = 1.0;
-
-        marker.lifetime = ros::Duration();
-        markerArray.markers.push_back(marker);
-      }
-    }
-  }
-
-  pub_voronoi_edge_.publish(markerArray);    
-}
-
 std::string Simulator::agentStateToActivity(
     const AgentStateMachine::AgentState& state) const {
   std::string activity = "Unknown";
@@ -789,14 +428,4 @@ std_msgs::Header Simulator::createMsgHeader() const {
   msg_header.stamp = ros::Time::now();
   msg_header.frame_id = frame_id_;
   return msg_header;
-}
-
-float Simulator::sign(float x){
-  // todo 应该是个约束 很小的值内 sign保持不变？
-  if (x>0)
-    return 1;
-  else if (x==0)
-    return 1;
-  else
-    return -1;
 }

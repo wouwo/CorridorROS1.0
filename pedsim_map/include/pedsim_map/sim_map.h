@@ -1,6 +1,3 @@
-/**
- *  \author Arvin <1120210190@mail.nankai.edu.cn>
-*/
 #include "ros/ros.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include <nav_msgs/Odometry.h>
@@ -29,8 +26,6 @@ class ObstacleProcess{
     /// subscribers
     ros::Subscriber sub_obstacles;
     ros::Subscriber sub_person;
-  
-  private:
     /// message to be published
     nav_msgs::OccupancyGrid map;
     nav_msgs::OccupancyGrid map_with_people;        
@@ -38,6 +33,6 @@ class ObstacleProcess{
     std::string frame_id;
     double resolution;
     double person_diameter;
-    bool is_map_initialized;
+    bool map_received_ = false;
     double xMin, xMax, yMin, yMax;
 };

@@ -1,0 +1,10 @@
+20:04:39: Creating resource group General
+20:04:39: Creating resource group Internal
+20:04:39: Creating resource group Autodetect
+20:04:39: Registering ResourceManager for type Material
+20:04:39: Registering ResourceManager for type Skeleton
+20:04:39: Registering ResourceManager for type Mesh
+20:04:39: OGRE EXCEPTION(7:InternalErrorException): Unexpected error while reading file animated_walking_man.mesh in OgreMeshUpgrade at /build/ogre-1.9-B6QkmW/ogre-1.9-1.9.0+dfsg1/Tools/MeshUpgrader/src/main.cpp (line 993)
+20:04:39: Unregistering ResourceManager for type Mesh
+20:04:39: Unregistering ResourceManager for type Skeleton
+20:04:39: Unregistering ResourceManager for type Material

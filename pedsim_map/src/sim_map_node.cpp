@@ -8,7 +8,7 @@ int main(int argc, char **argv)
   ObstacleProcess mapProcess(n);
   mapProcess.YamlReader();
   while (ros::ok()){
-    mapProcess.MatchMap();
+    // mapProcess.MatchMap();
     ros::spinOnce();
     loop_rate.sleep();
   }

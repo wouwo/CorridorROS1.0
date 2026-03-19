@@ -1,0 +1,23 @@
+<launch>
+  <!-- Fake map server -->
+  <include file="$(find pedsim_map)/launch/pedsim_map.launch"/>
+
+  <!-- Localization: lobby:(1,0,0.13), others:(0,0,0) -->
+  <!-- <arg name="initial_pose_x" default="1.0"/>
+  <arg name="initial_pose_y" default="1.0"/>
+  <arg name="initial_pose_a" default="0.13"/>
+  <arg name="custom_amcl_launch_file" default="$(find move_base_bridge)/launch/includes/amcl/amcl.launch.xml"/>  -->
+
+  <!-- <include file="$(arg custom_amcl_launch_file)">
+    <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
+    <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
+  </include> -->
+
+  <!-- Move base -->
+ <include file="$(find move_base_bridge)/launch/includes/move_base_cnn.launch.xml">
+    <arg name="cmd_vel_topic" value="/move_base/cmd_vel"/>
+ </include>
+
+
+</launch>

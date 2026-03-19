@@ -36,7 +36,6 @@
 #include <pedsim_simulator/force/force.h>
 #include <pedsim_simulator/scene.h>
 #include <pedsim_simulator/waypointplanner/waypointplanner.h>
-#include <tf/tf.h>
 
 Agent::Agent() {
   // initialize
@@ -44,7 +43,6 @@ Agent::Agent() {
   Ped::Tagent::setForceFactorObstacle(CONFIG.forceObstacle);
   forceSigmaObstacle = CONFIG.sigmaObstacle;
   Ped::Tagent::setForceFactorSocial(CONFIG.forceSocial);
-  Ped::Tagent::setForceFactorVoronoi(CONFIG.forceVoronoi);
   // waypoints
   currentDestination = nullptr;
   waypointplanner = nullptr;
@@ -58,7 +56,6 @@ Agent::~Agent() {
   // clean up
   foreach (Force* currentForce, forces) { delete currentForce; }
 }
-
 
 /// Calculates the desired force. Same as in lib, but adds graphical
 /// representation
@@ -74,9 +71,9 @@ Ped::Tvector Agent::desiredForce() {
 
 /// Calculates the social force. Same as in lib, but adds graphical
 /// representation
-Ped::Tvector Agent::socialForce(DecisionGraph* dg) {
+Ped::Tvector Agent::socialForce() const {
   Ped::Tvector force;
-  if (!disabledForces.contains("Social")) force = Tagent::socialForce(dg);
+  if (!disabledForces.contains("Social")) force = Tagent::socialForce();
 
   // inform users
   emit socialForceChanged(force.x, force.y);
@@ -95,13 +92,6 @@ Ped::Tvector Agent::obstacleForce() const {
 
   return force;
 }
-
-Ped::Tvector Agent::voronoiForce(DecisionGraph* dg){
-  Ped::Tvector force;
-  force = Tagent::voronoiForce(dg);
-  return force;
-}
-
 
 Ped::Tvector Agent::myForce(Ped::Tvector desired) const {
   // run additional forces
@@ -157,7 +147,7 @@ void Agent::updateState() {
   stateMachine->doStateTransition();
 }
 
-void Agent::move(double h, DecisionGraph *dg) {
+void Agent::move(double h) {
   if (getType() == Ped::Tagent::ROBOT) {
     if (CONFIG.robot_mode == RobotMode::TELEOPERATION) {
       // NOTE: Moving is now done by setting x, y position directly in
@@ -172,47 +162,36 @@ void Agent::move(double h, DecisionGraph *dg) {
 
       setvx(0);
       setvy(0);
-      // Ped::Tagent::move(h);
+      Ped::Tagent::move(h);
       setvx(vx);
       setvy(vy);
     } else if (CONFIG.robot_mode == RobotMode::CONTROLLED) {
-      // just like robotmode::teleoperation
-      const double vx = getvx();
-      const double vy = getvy();
-      setvx(0);
-      setvy(0);
-      // Ped::Tagent::move(h);
-      setvx(vx);
-      setvy(vy);
-      // if (SCENE.getTime() >= CONFIG.robot_wait_time) {
-      //   Ped::Tagent::move(h);
-      // }
+      if (SCENE.getTime() >= CONFIG.robot_wait_time) {
+        Ped::Tagent::move(h);
+      }
     } else if (CONFIG.robot_mode == RobotMode::SOCIAL_DRIVE) {
-      Ped::Tagent::setForceFactorSocial(CONFIG.forceSocial * 2.0);
+      Ped::Tagent::setForceFactorSocial(CONFIG.forceSocial * 0.7);
       Ped::Tagent::setForceFactorObstacle(35);
       Ped::Tagent::setForceFactorDesired(4.2);
 
-      Ped::Tagent::setVmax(1.0);
+      Ped::Tagent::setVmax(1.6);
       Ped::Tagent::SetRadius(0.4);
-      Ped::Tagent::move(h, dg);
+      Ped::Tagent::move(h);
     }
   } else {
-    if (getType() == Ped::Tagent::ELDER) {
-      // Old people slow!
-      Ped::Tagent::setVmax(0.5);
-      Ped::Tagent::setForceFactorDesired(0.5);
-    }
-    if (CONFIG.person_mode == PersonMode::SOCIAL_DRIVE){
-      Ped::Tagent::move(h, dg);
-    }
+    Ped::Tagent::move(h);
   }
 
-
+  if (getType() == Ped::Tagent::ELDER) {
+    // Old people slow!
+    Ped::Tagent::setVmax(0.9);
+    Ped::Tagent::setForceFactorDesired(0.5);
+  }
 
   // inform users
-  // emit positionChanged(getx(), gety());
-  // emit velocityChanged(getvx(), getvy());
-  // emit accelerationChanged(getax(), getay());
+  emit positionChanged(getx(), gety());
+  emit velocityChanged(getvx(), getvy());
+  emit accelerationChanged(getax(), getay());
 }
 
 const QList<Waypoint*>& Agent::getWaypoints() const { return destinations; }
@@ -276,62 +255,6 @@ bool Agent::removeForce(Force* forceIn) {
   return (removeCount >= 1);
 }
 
-bool Agent::setTopic(){
-  this->topicName = "/people"+to_string(this->id)+"/keyboard";
-  this->GazetopicName="/people"+to_string(this->id)+"/keyboard"+"/gaze";
-  return true;
-}
-
-bool Agent::setSubscriber(ros::NodeHandle nh){
-  this->nh_ = nh;
-  this->sub_action_ = this->nh_.subscribe<geometry_msgs::Twist>(this->topicName, 1, boost::bind(&Agent::controlCallback, this,_1));
-  this->sub_state_ = this->nh_.subscribe<pedsim_msgs::TrackedPersons>("/persons_recorded", 1, boost::bind(&Agent::stateCallback, this,_1));
-  this->sub_gaze_ =this->nh_.subscribe<geometry_msgs::Twist>(this->GazetopicName,1,boost::bind(&Agent::gazeCallback,this,_1));
-  return true;
-}
-
-bool Agent::setPublisher(ros::NodeHandle nh){
-  this->nh_=nh;
-  this->topicPubGazeDirName="/people"+to_string(this->id)+"/gaze/direction";
-  this->pub_gaze_dir_=this->nh_.advertise<visualization_msgs::Marker>(this->topicPubGazeDirName,1,true);  
-  return true;
-}
-
-
-
-void Agent::gazePublish(const visualization_msgs::Marker dir_msg) const{
-  this->pub_gaze_dir_.publish(dir_msg);
-}
-
-void Agent::controlCallback(const geometry_msgs::Twist::ConstPtr& msg){
-  float vDot = msg->linear.x;
-  float wDot = msg->angular.z; 
-  this->actionFromTopic = Ped::Tvector(vDot,wDot,0);
-}
-
-void Agent::stateCallback(const pedsim_msgs::TrackedPersons::ConstPtr& msg){
-  for (auto person:msg->tracks){
-    if (person.track_id == this->id){
-      tf::Quaternion quat;
-      tf::quaternionMsgToTF(person.pose.pose.orientation, quat);
-      double yaw, pitch, roll;
-      tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-      this->stateFromTopic = Ped::Tvector(person.pose.pose.position.x, person.pose.pose.position.y, yaw, person.twist.twist.linear.x, person.twist.twist.linear.y);
-    }
-  }
-}
-
-void Agent::gazeCallback(const geometry_msgs::Twist::ConstPtr& msg){
-  
-
-  float yawRot= msg->angular.z; // for gaze target move along with x axis
-  float pitchRot = msg->angular.y; // for gaze target move along with y axis
-  float rollRot=msg->angular.x; // for gaze target move along with z axis
-  float mode=msg->linear.x;
-
-  this->gazeFromTopic=Ped::Tvector(yawRot,pitchRot,rollRot,mode);
-}
-
 AgentStateMachine* Agent::getStateMachine() const { return stateMachine; }
 
 WaypointPlanner* Agent::getWaypointPlanner() const { return waypointplanner; }
@@ -388,8 +311,6 @@ Ped::Tvector Agent::getWalkingDirection() const { return v; }
 Ped::Tvector Agent::getSocialForce() const { return socialforce; }
 
 Ped::Tvector Agent::getObstacleForce() const { return obstacleforce; }
-
-Ped::Tvector Agent::getVoronoiForce() const { return voronoiforce; }
 
 Ped::Tvector Agent::getMyForce() const { return myforce; }
 

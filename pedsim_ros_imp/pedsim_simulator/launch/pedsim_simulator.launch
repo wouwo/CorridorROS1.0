@@ -2,7 +2,7 @@
   <!-- select a robot model-->
   <arg name="robot_model" default="water" doc="opt: water, wheeltec"/>
   <!-- select a mode: how to drive persons: 0: data replay; 1: social force; 2: manually control with interface keyboard -->
-  <arg name="person_mode" default="2" doc="0, 1, 2"/>
+  <arg name="person_mode" default="1" doc="0, 1, 2"/>
   <arg name="enable_gaze_control" default="true"/>
   <!-- select a mode: how to drive the robot: 0: controlled by move_base, listen to the topic /cmd_vel; 1: social force; 2: manually control with interface keyboard -->
   <arg name="robot_mode" default="0" doc="0, 1, 2"/>
@@ -11,16 +11,19 @@
   <arg name="visualize" default="true"/>
   <arg name="default_queue_size" default="10"/>
   <arg name="enable_groups" default="true"/>
-  <arg name="pose_initial_x" default="-14.0"/>
-  <arg name="pose_initial_y" default="0.0"/>
+  <arg name="pose_initial_x" default="20.0"/>
+  <arg name="pose_initial_y" default="18.0"/>
   <arg name="pose_initial_theta" default="0.0"/>
   <arg name="max_robot_speed" default="1.0"/>
   <arg name="simulation_factor" default="1"/>
   <arg name="update_rate" default="25.0"/>
   <arg name="spawn_period" default="5.0"/>
 
+  <arg name="world_name" default="$(find pedsim_gazebo_plugin)/worlds/lobby_45ped.world"/>
+  <arg name="gui" default="true" doc="Bring up the Gazebo graphical interface"/>
+
   <!-- select a scene-->
-  <arg name="scene_file" default="$(find pedsim_simulator)scenes/example_env.xml"/>
+  <arg name="scene_file" default="$(find pedsim_simulator)scenes/lobby_45ped.xml"/>
   <!-- <arg name="scene_file" default="$(find pedsim_simulator)scenes/test.xml"/> -->
   <!-- <arg name="scene_file" default="$(find pedsim_simulator)scenes/test2.xml"/> -->
 
@@ -33,8 +36,6 @@
   <!-- <arg name="scene_file" default="$(find pedsim_simulator)scenes/detouring.xml"/> -->
   <!-- <arg name="scene_file" default="$(find pedsim_simulator)scenes/turning.xml"/> -->
   
-  
-  
   <!-- Simulator -->
   <node name="pedsim_simulator" pkg="pedsim_simulator" type="pedsim_simulator" output="screen">
     <param name="scene_file" value="$(arg scene_file)" type="string"/>
@@ -46,14 +47,39 @@
     <param name="update_rate" value="$(arg update_rate)" type="double"/>
     <param name="spawn_period" value="$(arg spawn_period)" type="double"/>  
     <param name="person_mode" value="$(arg person_mode)" type="int"/>
-    <param name="enable_gaze_control" value="$(arg enable_gaze_control)" type="bool"/>
   </node>
+
+  <!-- Gazebo -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" value="$(arg world_name)"/>
+      <arg name="gui" value="$(arg gui)" />
+  </include>
+  
+  <!-- this node spawn pedsim actors to gazebo once, then the plugin updates their pose -->  
+  <node pkg="pedsim_gazebo_plugin" type="spawn_pedsim_agents.py" name="spawn_pedsim_agents"  output="screen">
+  </node>
+
+  <!-- Place gazebo frame at map frame -->
+  <!-- <node pkg="tf" type="static_transform_publisher" name="gazebo_map_broadcaster"
+      args="-1 -1 0 0 0 0  odom gazebo 100"/> -->
+
+  
+  <node name="spawn_robot" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-urdf -param robot_description 
+                -model $(arg robot_model) 
+                -x $(arg pose_initial_x) 
+                -y $(arg pose_initial_y) 
+                -z 0.0 
+                -Y $(arg pose_initial_theta)"/>
 
   <!-- Fake map_sever -->
   <include file="$(find pedsim_map)/launch/pedsim_map.launch"/>
 
+
+  <!-- <include file="$(find fake_localization)/launch/fake_localization.launch"/> -->
+
   <!-- Robot controller -->
-  <group ns="pedbot/control" if="$(arg with_robot)">
+  <!-- <group ns="pedbot/control" if="$(arg with_robot)">
     <include file="$(find pedsim_simulator)/launch/robot_controller.launch">
       <arg name="robot_mode" value="$(arg robot_mode)"/>
       <arg name="robot_model" value="$(arg robot_model)" />
@@ -61,7 +87,14 @@
       <arg name="pose_initial_y" value="$(arg pose_initial_y)"/>
       <arg name="pose_initial_theta" value="$(arg pose_initial_theta)"/>
     </include>
-  </group>
+  </group> -->
+
+  <!-- AMCL -->
+  <include file="$(find amcl)/examples/amcl_diff.launch">
+    <arg name="initial_pose_x" value="$(arg pose_initial_x)"/>
+    <arg name="initial_pose_y" value="$(arg pose_initial_y)"/>
+    <arg name="initial_pose_a" value="$(arg pose_initial_theta)"/>
+  </include>
 
   <!-- Open interface_teleop if person_mode==2-->
   <include if="$(eval person_mode == 2 or robot_mode == 2)" file="$(find pedsim_simulator)/launch/interface_teleop.launch"> <arg name="robot_model" value="$(arg robot_model)" />  </include>

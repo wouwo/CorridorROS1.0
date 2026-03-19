@@ -249,53 +249,43 @@ bool Scene::hasStarted() const { return (sceneTime == 0); }
 void Scene::dissolveClusters() {
   foreach (AgentCluster* cluster, agentClusters) {
     QList<Agent*> newAgents = cluster->dissolve();
-
-    // divide agents into groups
     QList<AgentGroup*> newGroups = AgentGroup::divideAgents(newAgents);
 
-    // apply group forces
     foreach (AgentGroup* currentGroup, newGroups) {
-      if (currentGroup->memberCount() == 1) {
-        // we don't need one agent groups
-        delete currentGroup;
-      } else if (currentGroup->memberCount() > 1) {
-        // keep track of groups
-        agentGroups.append(currentGroup);
+      // 1. 先处理 1 人群组的情况
+      if (currentGroup->memberCount() <= 1) {
+        // 对于单人群组，虽然不作为 Group，但其中的 Agent 还是需要设置目的地
+        foreach (Agent* currentAgent, currentGroup->getMembers()) {
+          currentAgent->setWaypoints(cluster->getWaypoints());
+          currentAgent->setGroup(nullptr); // 确保它不属于任何组
+        }
+        delete currentGroup; // 现在删除是安全的，因为后面不再访问它
+        continue;            // 重要：立即跳过本次循环，不再向下执行
       }
 
-      // add group's agents to the scene
+      // 2. 处理多人有效群组
+      agentGroups.append(currentGroup);
+
       foreach (Agent* currentAgent, currentGroup->getMembers()) {
         currentAgent->setWaypoints(cluster->getWaypoints());
+        currentAgent->setGroup(currentGroup);
 
-        if (currentGroup->memberCount() > 1) {
-          currentAgent->setGroup(currentGroup);
-          // → Gaze Force
-          // 一个与agent的当前方向相反或相同的力，大小为该agent与群组的中心距离
-          GroupGazeForce* gazeForce = new GroupGazeForce(currentAgent);
-          gazeForce->setGroup(currentGroup);
-          currentAgent->addForce(gazeForce);
+        // → 添加群组力 (Gaze, Coherence, Repulsion)
+        GroupGazeForce* gazeForce = new GroupGazeForce(currentAgent);
+        gazeForce->setGroup(currentGroup);
+        currentAgent->addForce(gazeForce);
 
-          // → Coherence Force
-          // 一个指向群组中心的力，大小与距离成正比
-          GroupCoherenceForce* coherenceForce =
-              new GroupCoherenceForce(currentAgent);
-          coherenceForce->setGroup(currentGroup);
-          currentAgent->addForce(coherenceForce);
+        GroupCoherenceForce* coherenceForce = new GroupCoherenceForce(currentAgent);
+        coherenceForce->setGroup(currentGroup);
+        currentAgent->addForce(coherenceForce);
 
-          // → Repulsion Force
-          // 即使是群组内的人也不要靠的太近，排斥力
-          GroupRepulsionForce* repulsionForce =
-              new GroupRepulsionForce(currentAgent);
-          repulsionForce->setGroup(currentGroup);
-          currentAgent->addForce(repulsionForce);
-        }
+        GroupRepulsionForce* repulsionForce = new GroupRepulsionForce(currentAgent);
+        repulsionForce->setGroup(currentGroup);
+        currentAgent->addForce(repulsionForce);
       }
     }
-
-    // finally remove cluster
     delete cluster;
   }
-
   agentClusters.clear();
 }
 
@@ -307,7 +297,6 @@ void Scene::addAgent(Agent* agent) {
   Ped::Tscene::addAgent(agent);
 
   // add additional forces
-  // 在建立agent时，就已经connect了噪声force和障碍物的force
   // → Random Force
   RandomForce* randomForce = new RandomForce(agent);
   agent->addForce(randomForce);
@@ -495,6 +484,31 @@ bool Scene::removeAttraction(AttractionArea* attractionInIn) {
   return true;
 }
 
+// MODIFIELD
+// std::set<const Ped::Tagent*> Scene::getNeighbors(double x, double y,
+//                                                  double maxDist) {
+//   std::set<const Ped::Tagent*> potentialNeighbours =
+//       Ped::Tscene::getNeighbors(x, y, maxDist);
+//   Ped::Tvector position(x, y);
+
+//   // filter according to euclidean distance
+//   auto agentIter = potentialNeighbours.begin();
+//   while (agentIter != potentialNeighbours.end()) {
+//     const Ped::Tagent& candidate = **agentIter;
+//     Ped::Tvector candidatePos = candidate.getPosition();
+//     double distance = (candidatePos - position).length();
+
+//     // remove distant neighbors
+//     if (distance > maxDist) {
+//       potentialNeighbours.erase(agentIter++);
+//     } else {
+//       ++agentIter;
+//     }
+//   }
+
+//   return potentialNeighbours;
+// }
+
 std::set<const Ped::Tagent*> Scene::getNeighbors(double x, double y,
                                                  double maxDist) {
   std::set<const Ped::Tagent*> potentialNeighbours =
@@ -508,8 +522,8 @@ std::set<const Ped::Tagent*> Scene::getNeighbors(double x, double y,
     Ped::Tvector candidatePos = candidate.getPosition();
     double distance = (candidatePos - position).length();
 
-    // remove distant neighbors
-    if (distance > maxDist) {
+    // 核心修改：如果邻居距离太远，或者这个邻居是机器人(ROBOT)，则从感知列表中剔除
+    if (distance > maxDist || candidate.getType() == Ped::Tagent::ROBOT) {
       potentialNeighbours.erase(agentIter++);
     } else {
       ++agentIter;
@@ -519,7 +533,7 @@ std::set<const Ped::Tagent*> Scene::getNeighbors(double x, double y,
   return potentialNeighbours;
 }
 
-void Scene::moveAllAgents(DecisionGraph* dg) {
+void Scene::moveAllAgents() {
   // inform users when there is going to be the first update
   if (sceneTime == 0) emit aboutToStart();
 
@@ -538,70 +552,34 @@ void Scene::moveAllAgents(DecisionGraph* dg) {
   sceneTime += CONFIG.getTimeStepSize();
   emit sceneTimeChanged(sceneTime);
 
-  // update person state or robot state with social force model
-  // 如果存在person或robot需要被社会力驱动，那么遍历agent，调用moveAgentWithSocial，进而调用agent.cpp中的move()，在这个move()中，会再次对agent类型进行判断，区分是person还是robot使用social force
-  if (CONFIG.person_mode == PersonMode::SOCIAL_DRIVE || CONFIG.robot_mode == RobotMode::SOCIAL_DRIVE){
-    // social force model to drive people
-    // move the agents
-    // 这里处理其他agent和obstacle给的力
-    Ped::Tscene::moveAgentsWithSocial(CONFIG.getTimeStepSize(), dg);
-    auto Dist = [](const double ax, const double ay, const double bx,
-                  const double by) -> double {
-      return std::hypot(ax - bx, ay - by);
-    };
+  // move the agents
+  Ped::Tscene::moveAgents(CONFIG.getTimeStepSize());
 
-    // For every agents, if next WP is sink and 'close', call removeAgent.
-    for (auto agent : getAgents()) {
-      const auto agent_next_wp = agent->getCurrentWaypoint();
-      // skip agents without any waypoint
-      // waypoint为空，静止
-      if (!agent_next_wp) {
-        continue;
-      }
-      // sink是啥。。
-      if (agent_next_wp->getBehavior() != Ped::Twaypoint::Behavior::SINK) {
-        continue;
-      }
+  auto Dist = [](const double ax, const double ay, const double bx,
+                 const double by) -> double {
+    return std::hypot(ax - bx, ay - by);
+  };
 
-      const double d = Dist(agent_next_wp->getx(), agent_next_wp->gety(),
-                            agent->getx(), agent->gety());
-      if (d < agent_next_wp->getRadius()) {
-        // At sink waypoint.
-        ROS_DEBUG_STREAM("Killing agent: " << agent->getId());
-        removeAgent(agent);
-      }
+  // For every agents, if next WP is sink and 'close', call removeAgent.
+  for (auto agent : getAgents()) {
+    const auto agent_next_wp = agent->getCurrentWaypoint();
+    // skip agents without any waypoint
+    if (!agent_next_wp) {
+      continue;
+    }
+
+    if (agent_next_wp->getBehavior() != Ped::Twaypoint::Behavior::SINK) {
+      continue;
+    }
+
+    const double d = Dist(agent_next_wp->getx(), agent_next_wp->gety(),
+                          agent->getx(), agent->gety());
+    if (d < agent_next_wp->getRadius()) {
+      // At sink waypoint.
+      ROS_DEBUG_STREAM("Killing agent: " << agent->getId());
+      removeAgent(agent);
     }
   }
-
-  // update person state with teleop controller
-  if (CONFIG.person_mode == PersonMode::TELEOPERATION){
-    // get actionList
-    // manually control people
-    for (auto agent : getAgents()) {
-      if (agent->getType()!= 2){
-        this->actionList.push(make_pair(agent->actionFromTopic.x,agent->actionFromTopic.y));
-      }
-    }
-    Ped::Tscene::moveAgentsWithManual(CONFIG.getTimeStepSize());
-  }
-
-  // update person state with data replay
-  if (CONFIG.person_mode == PersonMode::REPLAY){
-    for (auto agent : getAgents()) {
-      if (agent->getType()!=2){
-        this->stateList.push(agent->stateFromTopic);
-      }
-    }
-    Ped::Tscene::moveAgentsWithReplay();
-  }
-
-  // update human gaze 
-  for (auto agent: getAgents()){
-    if (agent->getType()!=2){
-      this->gazeList.push(agent->gazeFromTopic);
-    }
-  }
-  Ped::Tscene::adjustAgentsGazeWithManual(CONFIG.getTimeStepSize());
 
   // inform users
   emit movedAgents();

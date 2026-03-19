@@ -1,7 +1,7 @@
 <launch>
   <!-- Arguments -->
   <arg name="robot_model" default="water" doc="opt: water, wheeltec"/>
-  <arg name="local_plan" default="TEB" doc="opt: TEB, DWA, Bezier, TBL, PGL, MPC"/>
+  <arg name="local_plan" default="DRL_VO" doc="opt: TEB, DWA, Bezier, TBL, PGL, MPC, DRL_VO, HEIGHT, Ours"/>
   
   <!-- move_base, Timed elastic band -->
   <node if="$(eval local_plan == 'TEB')" pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
@@ -115,6 +115,25 @@
     <rosparam if="$(eval robot_model == 'water')" file="$(find water_description)/param/robot_constrains.yaml" command="load" ns="global_costmap"/>
     <rosparam if="$(eval robot_model == 'water')" file="$(find water_description)/param/robot_constrains.yaml" command="load" ns="local_costmap"/>
   </node>
-    <!-- <param name="base_global_planner" value="voronoi_planner/VoronoiPlanner"/> -->
+
+  <group if="$(eval local_plan == 'DRL_VO')">
+    <arg name="model_file" default="$(find drl_vo_nav)/model/drl_vo.zip"/>
+    
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+      <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+      <remap from="cmd_vel" to="/move_base/cmd_vel"/> <rosparam file="$(find move_base_bridge)/move_base_param/move_base_params.yaml" command="load" />
+      <rosparam file="$(find move_base_bridge)/costmap_param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find move_base_bridge)/costmap_param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <rosparam if="$(eval robot_model == 'water')" file="$(find water_description)/param/robot_constrains.yaml" command="load" ns="global_costmap"/>
+    </node>
+
+    <include file="$(find drl_vo_nav)/launch/nav_cnn_data.launch">
+       </include>
+
+    <include file="$(find drl_vo_nav)/launch/drl_vo_inference.launch">
+      <arg name="model_file" value="$(arg model_file)"/>
+    </include>
+
+  </group>
 
 </launch>

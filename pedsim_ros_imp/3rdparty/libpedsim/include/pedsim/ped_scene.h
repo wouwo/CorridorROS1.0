@@ -16,10 +16,6 @@
 #include <map>
 #include <set>
 #include <vector>
-#include <queue>
-#include "ped_vector.h"
-#include <eigen3/Eigen/Eigen>
-#include <dynamicvoronoi/decision_graph.h>
 
 using namespace std;
 
@@ -80,10 +76,7 @@ class LIBEXPORT Tscene {
   virtual bool removeWaypoint(Twaypoint* w);
 
   virtual void cleanup();
-  virtual void moveAgentsWithSocial(double h, DecisionGraph* dg);
-  virtual void moveAgentsWithManual(double h);
-  virtual void moveAgentsWithReplay();
-  virtual void adjustAgentsGazeWithManual(double h);
+  virtual void moveAgents(double h);
 
   set<const Ped::Tagent*> getNeighbors(double x, double y, double dist) const;
   const vector<Tagent*>& getAllAgents() const { return agents; };
@@ -99,12 +92,6 @@ class LIBEXPORT Tscene {
   void moveAgent(const Ped::Tagent* a);
   void getNeighbors(std::vector<const Ped::Tagent*>& neighborList, double x,
                     double y, double dist) const;
-
- public:
-  queue<pair<int,int>> actionList;
-  queue<Ped::Tvector> stateList;
-  queue<Ped::Tvector> gazeList;
-
 };
 }
 #endif

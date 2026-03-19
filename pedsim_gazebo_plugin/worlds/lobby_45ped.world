@@ -1,0 +1,1074 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+      <world name="default">
+      <include><uri>model://ground_plane</uri></include>
+      <include><uri>model://sun</uri></include>
+        
+
+    <model name='wall_line_1'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>10.0 0.0 1.4 0 0 -0.0</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 20.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 20.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_2'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>45.0 0.0 1.4 0 0 0.0</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 10.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 10.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_3'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>30.0 5.0 1.4 0 0 0.0</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 20.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 20.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_4'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>0.0 2.5 1.4 0 0 1.570796</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_5'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>40.0 2.5 1.4 0 0 1.570796</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_6'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>20.0 2.5 1.4 0 0 1.570796</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_7'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>0.0 7.5 1.4 0 0 1.570796</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 15.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 15.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_8'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>5.0 15.0 1.4 0 0 0.0</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 10.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 10.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_9'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>10.0 20.0 1.4 0 0 1.570796</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 10.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 10.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_10'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>25.0 25.0 1.4 0 0 0.0</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 30.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 30.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_11'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>40.0 27.5 1.4 0 0 1.570796</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_12'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>47.5 30.0 1.4 0 0 0.0</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 15.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 15.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_13'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>52.5 25.0 1.4 0 0 0.0</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_14'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>50.0 12.5 1.4 0 0 1.570796</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 25.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 25.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_line_15'>
+      <static>1</static>
+      <link name='link'>
+    
+	  <pose frame=''>55.0 27.5 1.4 0 0 1.570796</pose>
+
+        <collision name='collision'>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+        </collision>
+    
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+	     <size> 5.0 0.2 2.8 </size>
+
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_16'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>21.0 6.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_17'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>27.0 6.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_18'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>33.0 6.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_19'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>39.0 6.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_20'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>21.0 24.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_21'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>27.0 24.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_22'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>33.0 24.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_23'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>39.0 24.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_24'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>8.0 14.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_25'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>10.0 14.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_26'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>12.0 14.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_circle_27'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>12.0 16.0 1.4 0 0 0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>2.8</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_rect_28'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>48.0 15.0 1.4 0 0 0.0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.6 5.0 2.8</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>0.6 5.0 2.8</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_rect_29'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>20.0 15.0 1.4 0 0 0.0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>3.0 0.6 2.8</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>3.0 0.6 2.8</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_rect_30'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>30.0 15.0 1.4 0 0 0.0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.6 3.0 2.8</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>0.6 3.0 2.8</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+    <model name='wall_rect_31'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>40.0 15.0 1.4 0 0 0.0</pose>
+        
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>3.0 0.6 2.8</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>3.0 0.6 2.8</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grey_wall/materials/scripts</uri>
+              <uri>model://grey_wall/materials/textures</uri>
+              <name>vrc/grey_wall</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+
+            <plugin name="ActorPosesPlugin" filename="libActorPosesPlugin.so"></plugin>
+      </world>
+    </sdf>

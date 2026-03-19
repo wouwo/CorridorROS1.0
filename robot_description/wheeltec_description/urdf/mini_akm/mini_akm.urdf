@@ -58,7 +58,7 @@
   <!-- Defining the control plugin used in this robot -->
   <gazebo>
     <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
-      <robotNamespace>/wheeltec</robotNamespace>
+      <!-- <robotNamespace>/wheeltec</robotNamespace> -->
       <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
       <legacyModeNS>true</legacyModeNS>
     </plugin>

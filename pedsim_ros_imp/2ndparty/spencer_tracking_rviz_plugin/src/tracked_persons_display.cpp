@@ -30,6 +30,8 @@
 
 
 #ifndef Q_MOC_RUN
+#include <QMetaType>
+#include <QVector>
 #include <rviz/visualization_manager.h>
 #include <rviz/frame_manager.h>
 #include "rviz/selection/selection_manager.h"
@@ -48,6 +50,7 @@ namespace spencer_tracking_rviz_plugin
 // constructor the parameters it needs to fully initialize.
 void TrackedPersonsDisplay::onInitialize()
 {
+    qRegisterMetaType<QVector<int>>("QVector<int>");
     PersonDisplayCommon::onInitialize();
 
     m_realFixedFrame = "odom";

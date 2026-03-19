@@ -6,6 +6,14 @@
 
 <robot name="water_all" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:property name="M_PI" value="3.1415926535897931" /> 
+  <link name="base_footprint"/>
+
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/> 
+  </joint>
+
   <link
     name="base_link">
         <!-- r=0.26 -->>
@@ -39,11 +47,10 @@
     </visual>
     <collision>
       <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
+        xyz="0 0 0.04"
+        rpy="0 0 -${M_PI/2}" />
       <geometry>
-        <mesh
-          filename="package://water_description/meshes/base_link.STL" />
+        <cylinder length="0.15" radius="0.26"/> 
       </geometry>
     </collision>
   </link>
@@ -83,7 +90,7 @@
  <joint name="wheel_left_joint" type="continuous">
     <parent link="base_link2"/>
     <child link="wheel_left_link"/>
-    <origin xyz="${0.40/2} 0.0 -0.04" rpy="${-M_PI/2} 0 ${M_PI/2}"/>
+    <origin xyz="-${0.40/2} 0.0 -0.04" rpy="${-M_PI/2} 0 ${M_PI/2}"/>
     <axis xyz="0 0 1"/>
   </joint>
 
@@ -117,7 +124,7 @@
   <joint name="wheel_right_joint" type="continuous">
     <parent link="base_link2"/>
     <child link="wheel_right_link"/>
-    <origin xyz="-${0.40/2} 0.0 -0.04" rpy="${-M_PI/2} 0 ${M_PI/2}"/>
+    <origin xyz="${0.40/2} 0.0 -0.04" rpy="${-M_PI/2} 0 ${M_PI/2}"/>
     <axis xyz="0 0 1"/>
   </joint>
   <link name="wheel_right_link">
@@ -374,12 +381,12 @@
 
   <!-- Hokuyo Laser -->
   <link name="hokuyo_link">
-    <collision>
+    <!-- <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <box size="0.01 0.01 0.01"/>
       </geometry>
-    </collision>
+    </collision> -->
 
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -460,13 +467,22 @@
       <leftJoint>wheel_left_joint</leftJoint>
       <rightJoint>wheel_right_joint</rightJoint>
       <wheelSeparation>0.40</wheelSeparation>
-      <wheelDiameter>0.03</wheelDiameter>
-      <torque>300</torque>
+      <wheelDiameter>0.056</wheelDiameter>
+
+      <wheelTorque>300</wheelTorque>
+      <wheelAcceleration>1.0</wheelAcceleration>
+      <rosDebugLevel>na</rosDebugLevel>
+      <publishWheelJointState>true</publishWheelJointState>
+      <odometrySource>world</odometrySource>
+      <publishTf>1</publishTf>
+
       <legacyMode>true</legacyMode>
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
-      <robotBaseFrame>base_link</robotBaseFrame>
+      <robotBaseFrame>base_footprint</robotBaseFrame>
+      <publishWheelTF>true</publishWheelTF>
+      <publishOdomTF>true</publishOdomTF>
     </plugin>
   </gazebo>
 
@@ -501,9 +517,19 @@
       <!-- <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_gpu_laser.so"> -->
       <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
         <topicName>/scan</topicName>
-        <frameName>base_link</frameName>
+        <frameName>hokuyo_link</frameName>
       </plugin>
     </sensor>
+  </gazebo>
+
+  <gazebo reference="base_link">
+    <collision name="base_link_collision">
+      <surface>
+        <contact>
+          <collide_bitmask>0x02</collide_bitmask>
+        </contact>
+      </surface>
+    </collision>
   </gazebo>
 
 </robot>

@@ -95,6 +95,17 @@ MeshPersonVisual::MeshPersonVisual(const PersonVisualDefaultArgs& args) : Person
 {
     m_childSceneNode = m_sceneNode->createChildSceneNode();
     m_childSceneNode->setVisible(false);
+    std::string missingMaterial = "male_base_lambert1";
+
+    // 2. 检查并创建材质，防止 Ogre 报错
+    if (!Ogre::MaterialManager::getSingleton().resourceExists(missingMaterial))
+    {
+        // 创建一个名为 male_base_lambert1 的空材质，并赋予它一些默认颜色
+        Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create(missingMaterial, "rviz");
+        mat->getTechnique(0)->getPass(0)->setAmbient(0.5, 0.5, 0.5);
+        mat->getTechnique(0)->getPass(0)->setDiffuse(0.5, 0.5, 0.5, 1.0);
+        // 如果你想让它变透明，可以设置透明度
+    }
 
     std::string meshResource = "package://" ROS_PACKAGE_NAME "/media/animated_walking_man.mesh";
 
