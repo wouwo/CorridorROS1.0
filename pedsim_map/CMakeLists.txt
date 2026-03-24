@@ -30,8 +30,8 @@ set(EXECUTABLE_NAME ${PROJECT_NAME}_node)
 
 
 add_executable(${EXECUTABLE_NAME}
-  src/real_map_node.cpp
-  src/real_map.cpp
+  src/sim_map_node.cpp
+  src/sim_map.cpp
 )
 
 add_dependencies(${EXECUTABLE_NAME} ${catkin_EXPORTED_TARGETS})

@@ -83,23 +83,23 @@ void RealObstacleProcess::PersonsCallback(const pedsim_msgs::TrackedPersons::Con
   if(map_received_){
     map_with_people = static_map_;
     double temp_x, temp_y;
-    // for (const auto& person : msg->tracks) {
-    //   temp_x = person.pose.pose.position.x;
-    //   temp_y = person.pose.pose.position.y;
-    //   float mx = temp_x / resolution_ - xMin / resolution_;
-    //   float my = temp_y / resolution_ - yMin / resolution_;
-    //   float m_radius = person_diameter_ / resolution_ / 2;
-    //   for (int i = floor(mx - m_radius); i < ceil(mx + m_radius); i++) {  
-    //     for (int j = floor(my - m_radius); j < ceil(my + m_radius); j++) {  
-    //       if (hypot(i - mx, j - my) <= m_radius) {
-    //         int idx = REAL_MAP_IDX(map_with_people.info.width, i, j);
-    //         if (idx >= 0 && idx < map_with_people.data.size()) {
-    //           map_with_people.data[idx] = 100; 
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+    for (const auto& person : msg->tracks) {
+      temp_x = person.pose.pose.position.x;
+      temp_y = person.pose.pose.position.y;
+      float mx = temp_x / resolution_ - xMin / resolution_;
+      float my = temp_y / resolution_ - yMin / resolution_;
+      float m_radius = person_diameter_ / resolution_ / 2;
+      for (int i = floor(mx - m_radius); i < ceil(mx + m_radius); i++) {  
+        for (int j = floor(my - m_radius); j < ceil(my + m_radius); j++) {  
+          if (hypot(i - mx, j - my) <= m_radius) {
+            int idx = REAL_MAP_IDX(map_with_people.info.width, i, j);
+            if (idx >= 0 && idx < map_with_people.data.size()) {
+              map_with_people.data[idx] = 100; 
+            }
+          }
+        }
+      }
+    }
     pub_map_with_people_.publish(map_with_people);
   }
 }

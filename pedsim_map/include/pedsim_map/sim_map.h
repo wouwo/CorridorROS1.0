@@ -33,6 +33,6 @@ class ObstacleProcess{
     std::string frame_id;
     double resolution;
     double person_diameter;
-    bool map_received_ = false;
+    bool is_map_initialized = false;
     double xMin, xMax, yMin, yMax;
 };
